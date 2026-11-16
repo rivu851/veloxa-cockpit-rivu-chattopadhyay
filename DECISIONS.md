@@ -1,116 +1,96 @@
 # Veloxa CXO Cockpit — Source Conflict Decisions Register
 **Assessment Phase:** Individual Hackathon (Day 1 Release — Mon 16 Nov 2026 10:00 IST)  
 **Author / Candidate:** Rivu Chattopadhyay  
-**Status Policy:** All consequential source conflicts are presented with competing evidence, structured interpretation options, and sensitivity analysis. Every decision is marked **`UNRESOLVED`** until personally reviewed and ratified by the human candidate.
+**Status Policy:** All consequential source conflicts are cataloged with competing evidence, human decisions, and sensitivity analysis. Discrepancies are maintained as unresolved conflicting claims without ungrounded speculation.
 
 ---
 
 ## Conflict CONF-001: Annual Recurring Revenue (ARR) Discrepancy
 
 ### 1. Competing Sources
-- **Formal Governance Record A:** `Board_Update_Apr-Jun_2026.pdf` (Page 1, Key Numbers)  
-  *Reported Metric:* `ARR (recurring): Rs. 5.8 Cr` (61 customers). Sent 8 Jul 2026.
-- **Formal Governance Record B:** `Board_Update_Jul-Sep_2026.pdf` (Page 1, Key Numbers)  
-  *Reported Metric:* `ARR (recurring): Rs. 6.1 Cr` (66 customers). Sent 6 Oct 2026.
+- **Board Update A:** `Board_Update_Apr-Jun_2026.pdf` (Page 1, Key Numbers)  
+  *Reported Metric:* `ARR (recurring): Rs. 5.8 Cr` (61 customers). Sent 8 Jul 2026. Confidential.
+- **Board Update B:** `Board_Update_Jul-Sep_2026.pdf` (Page 1, Key Numbers)  
+  *Reported Metric:* `ARR (recurring): Rs. 6.1 Cr` (66 customers). Sent 6 Oct 2026. Confidential.
 - **Verbal Statement C:** `T1_CEO_Kickoff_Call.docx` (Summary)  
-  *CEO Ananya Rao assertion:* ARR is *"around forty-two crore, maybe forty-five now"*.
+  *CEO Ananya Rao assertion:* Says ARR is *"around forty-two crore, maybe forty-five now"*.
 - **Verbal Statement D:** `T2_CFO_Call.docx` (Summary)  
-  *CFO Meera Iyer assertion:* ARR at start of year was *"forty-eight"*.
+  *CFO Meera Iyer assertion:* ARR at the start of the year was *"forty-eight"*.
 
-### 2. Discrepancy Analysis
-A massive **~7x to 8x variance** exists between formal board reports (Rs. 6.1 Cr) and the CEO's verbal claim (Rs. 42-45 Cr).
-
-### 3. Proposed Interpretation Options
-- **Option 1 (Recommended Cockpit Base):** The audited Board reports represent true SaaS subscription Annual Recurring Revenue (Rs. 6.1 Cr as of Q2). The CEO conflated platform Gross Merchandise Value (GMV) / annualized transaction volume passing through Veloxa's routing engine with recurring software license fees.
-- **Option 2:** The CEO is referencing multi-year Total Contract Value (TCV) across customer lifespans or unweighted sales pipeline.
-- **Option 3:** The CEO conflated company post-money equity valuation (e.g. $5M / ~Rs. 42 Cr) with annual revenue. CFO Meera's "forty-eight" refers to Rs. 4.8 Cr (48 Lakhs x 10 or FY26 closing ARR).
-
-### 4. Candidate Assessment & Recommendation
-- **Cockpit Decision:** Treat **Rs. 6.1 Crore** as the authoritative recurring revenue metric in all financial answers. When CEO asks for ARR, present Rs. 6.1 Cr, cite E006, and trigger `CONF-001` conflict alert explaining the verbal variance.
+### 2. Human Conflict Decision
+- **Authoritative Operational Metric:** Use **Rs. 6.1 Crore** as the latest board-reported recurring ARR (as of Period Jul to Sep 2026, reported 6 Oct 2026).
+- **Treatment of Verbal Claims:** Keep the CEO's Rs. 42–45 Cr and CFO's Rs. 48 Cr statements as **unresolved conflicting claims**.
+- **Negative Constraints:**
+  - Do **not** assert or speculate that verbal claims represent GMV, company valuation, or sales pipeline without primary source evidence.
+  - Do **not** describe the board report as "audited", as the document itself is labeled a confidential board update rather than a statutory audit.
+- **Impact on Cockpit Logic:** Executive queries return Rs. 6.1 Cr as the board-reported recurring ARR, cite E006 and E001, and trigger a `CONF-001` conflict notice citing the unresolved CEO and CFO statements.
 - **Confidence:** **MEDIUM**
-- **What Would Change Conclusion:** Audited FY26-27 statutory financial statements, detailed revenue recognition schedule from Zoho Books, or signed customer Master Services Agreements (MSAs).
-- **Human Decision Status:** **`UNRESOLVED`** (Pending Candidate Confirmation)
+- **What Would Change Conclusion:** Formal audited statutory accounts, general ledger revenue recognition schedules, or signed board minutes clarifying the basis of executive figures.
+- **Human Decision Status:** **`UNRESOLVED`** (Formal conflict remains documented and open).
 
 ---
 
 ## Conflict CONF-002: Monthly Burn Rate Discrepancy
 
 ### 1. Competing Sources
-- **Formal Governance Record A:** `Board_Update_Apr-Jun_2026.pdf` (Page 1, Key Numbers)  
+- **Board Update A:** `Board_Update_Apr-Jun_2026.pdf` (Page 1, Key Numbers)  
   *Reported Metric:* `Monthly burn: Rs. 46 L` (Runway: 14 months). Sent 8 Jul 2026.
-- **Formal Governance Record B:** `Board_Update_Jul-Sep_2026.pdf` (Page 1, Key Numbers)  
+- **Board Update B:** `Board_Update_Jul-Sep_2026.pdf` (Page 1, Key Numbers)  
   *Reported Metric:* `Monthly burn: Rs. 44 L` (Runway: 13 months). Sent 6 Oct 2026.
-- **Financial General Ledger:** `GL_Export_Apr-Sep_2026.xlsx` (Selected cost centres)  
-  *Ledger Outflow:* Monthly payroll alone (`PAYROLL`) is fixed at `Rs. 31,75,000` (~31.75 L) every month from Apr to Sep 2026. WeWork rent is `Rs. 2,36,000` (2.36 L), and AWS cloud infra ranges from `Rs. 1,81,200` to `Rs. 2,48,310`. Total fixed monthly cash outflow exceeds Rs. 36-45 Lakhs.
+- **Financial General Ledger:** `GL_Export_Apr-Sep_2026.xlsx` (Zoho Books, Apr to Sep 2026)  
+  *Disbursements:* Salaries (payroll) payment is entered at `Rs. 31,75,000` on the 28th of each month from Apr to Sep 2026. Office rent to WeWork India is `Rs. 2,36,000` monthly. AWS expenses range from `Rs. 1,81,200` to `Rs. 2,48,310`.
 - **Verbal Statement C:** `T2_CFO_Call.docx` (Summary)  
   *CFO Meera Iyer assertion:* Burn has been *"two point two lakhs a month, sometimes two point five"*.
 - **Verbal Statement D:** `T1_CEO_Kickoff_Call.docx` (Key points)  
-  *CEO Ananya Rao assertion:* Burn is *"around two point two"* (unit unstated).
+  *CEO Ananya Rao assertion:* Burn is *"around two point two"* (unit not stated).
 
-### 2. Discrepancy Analysis
-A **~20x variance** between verified cash ledger outflows / board burn reports (~Rs. 44 L) and verbal executive statements (Rs. 2.2-2.5 L). If gross burn were only 2.2 L/month with 13 months runway, Veloxa's cash balance would be an implausibly small Rs. 28 Lakhs. At Rs. 44 L/month with 13 months runway, Veloxa holds ~Rs. 5.72 Crore in bank reserves, matching an institutional Series A venture profile.
-
-### 3. Proposed Interpretation Options
-- **Option 1 (Mathematically Grounded - Recommended):** CFO Meera was stating **Net Cash Burn**, not Gross Burn. At Rs. 6.1 Cr ARR, monthly revenue collections are approximately Rs. 50.8 Lakhs. If gross operating expenses are ~Rs. 53 Lakhs, net cash depletion is approximately **Rs. 2.2 to 2.5 Lakhs per month**.
-- **Option 2 (Acoustic Truncation):** MeetNotes AI dropped "forty" over the speakerphone, truncating *"forty-two point five"* (42.5 L) to *"two point two to two point five"*.
-- **Option 3:** Executive referred strictly to non-payroll discretionary spending (rent + AWS + marketing SaaS).
-
-### 4. Candidate Assessment & Recommendation
-- **Cockpit Decision:** Report **Rs. 44 Lakhs/month** as the authoritative Gross Burn Rate (with 13 months runway), while documenting Option 1 (Net Burn ~2.2 L) as the primary explanatory hypothesis.
+### 2. Human Conflict Decision
+- **Authoritative Operational Metric:** Use **Rs. 44 Lakh** as the latest board-reported monthly burn (Period Jul to Sep 2026).
+- **Labeling Constraint:** Do **not** label this figure as "gross" or "net" burn, because the primary board update source document does not explicitly define the term.
+- **Inference Prohibition:** Do **not** infer net cash burn from ARR or assume ARR is cash received. General ledger inflows are not provided in Day 1 data.
+- **Treatment of Transcript Statement:** Keep CFO Meera's statement of *"two point two lakhs a month, sometimes two point five"* as an **unresolved transcript claim**.
+- **Impact on Cockpit Logic:** Queries return Rs. 44 Lakh monthly burn and 13 months runway from the Q2 board update, cite E007 and E003, list ledger payroll/rent/cloud actuals, and flag `CONF-002`.
 - **Confidence:** **MEDIUM**
-- **What Would Change Conclusion:** Monthly bank reconciliation statements, actual customer cash receipts ledger, or CFO confirmation.
-- **Human Decision Status:** **`UNRESOLVED`** (Pending Candidate Confirmation)
+- **What Would Change Conclusion:** Complete monthly cash-flow statement from Zoho Books, cash receipts journals, or written CFO reconciliation.
+- **Human Decision Status:** **`UNRESOLVED`** (Formal conflict remains documented and open).
 
 ---
 
-## Conflict CONF-003: Headcount & Scope of Keka HRMS Export
+## Conflict CONF-003: Headcount & Company Scope Discrepancy
 
 ### 1. Competing Sources
-- **HR System Record:** `Employee_Master.xlsx` (Sheet Employees, Row 1 & Rows 3-22)  
-  *Reported Headcount:* Exactly 19 employee rows (VX001 to VX019). Row 1 explicitly states: *"Keka HRMS export, employees only (contractors are not in Keka). Exported 31-Oct-2026."*
-- **Board Governance Updates:** `Board_Update_Apr-Jun_2026.pdf` & `Board_Update_Jul-Sep_2026.pdf`  
+- **HR System Record:** `Employee_Master.xlsx` (Sheet Employees, Rows 1-22)  
+  *Reported Count:* 19 employees. Row 1 notes: *"Keka HRMS export, employees only (contractors are not in Keka). Exported 31-Oct-2026."* 18 Active, 1 Notice period (Siddharth Mehta, exit date 2026-10-31).
+- **Board Updates:** `Board_Update_Apr-Jun_2026.pdf` & `Board_Update_Jul-Sep_2026.pdf`  
   *Reported Metric:* `Team: 19` in both Q1 and Q2.
 - **Verbal Statement:** `T1_CEO_Kickoff_Call.docx` (Summary)  
   *CEO Ananya Rao assertion:* Company is *"roughly eighteen people ('one-eighty, give or take')"*.
+- **Candidate Brief:** Hackathon problem description  
+  *Description:* Characterizes the company as a 180-person organization.
 
-### 2. Discrepancy Analysis
-The HR database and board reports confirm 19 employees. Within Keka, 18 are "Active" and 1 is on "Notice period" (Siddharth Mehta, exit date 2026-10-31). The CEO's remark contains both "eighteen" and "one-eighty".
-
-### 3. Proposed Interpretation Options
-- **Option 1 (Acoustic Artifact):** MeetNotes AI transcribed the CEO's verbal phrase *"eighteen, give or take"* as *"one-eighty, give or take"*. Ananya counted active full-time staff (18 active excluding Siddharth on notice).
-- **Option 2 (Extended Workforce):** Veloxa employs ~180 total personnel when counting third-party logistics contractors, delivery drivers, and warehouse operators who are not onboarded into Keka HRMS.
-
-### 4. Candidate Assessment & Recommendation
-- **Cockpit Decision:** Authoritative full-time employee headcount is **19** (18 Active, 1 Notice Period). Clearly disclose that contractors are excluded from Keka.
-- **Confidence:** **HIGH**
-- **What Would Change Conclusion:** Vendor contractor agreements, Culture Amp pulse survey respondent counts, or contractor payroll registers.
-- **Human Decision Status:** **`UNRESOLVED`** (Pending Candidate Confirmation)
+### 2. Human Conflict Decision
+- **Authoritative Operational Metric:** Use **19** as the board-reported and Keka-recorded employee count.
+- **Scope Treatment:** Keep the candidate brief's 180-person company description and the ambiguous CEO transcript statement (*"one-eighty, give or take"*) as **unresolved scope differences**.
+- **Negative Constraints:**
+  - Do **not** invent or extrapolate unlisted contractors to bridge the gap without primary records.
+  - Do **not** assume the CEO meant 18 active employees.
+- **Impact on Cockpit Logic:** Cockpit reports 19 employees from Keka and board reports, cites E020 and E006, notes the 18 active + 1 notice breakdown, and flags the unresolved 180-person scope difference (`CONF-003`).
+- **Confidence:** **MEDIUM**
+- **What Would Change Conclusion:** Official contractor registry, Culture Amp pulse participant roster, or organizational audit report.
+- **Human Decision Status:** **`UNRESOLVED`** (Formal conflict remains documented and open).
 
 ---
 
 ## Conflict CONF-004: Rahul Verma Partial-Month February Payroll Defect
 
 ### 1. Competing Sources
-- **Employee Master:** `Employee_Master.xlsx` (Row 21)  
-  *Rahul Verma (VX018):* Join Date: `2026-02-03`.
-- **Payroll Email Thread:** `01.eml` (28 Feb 2026 20:15 IST)  
-  *Karthik Subramanian to Meera Iyer:* *"Ran Feb payroll since Fatima is out. Used the Jan sheet and added the new joiner. Totals attached in the register."*
-- **Payroll Register:** `Payroll_Register_Jan-Mar_2026.xlsx` (Sheet Payroll Q4)  
-  *Feb-2026 (Row 39):* Rahul Verma is credited with `Days in Month: 28`, `Days Payable: 28`, Gross: Rs. 1,10,000 (100% full month pay, zero pro-ration for joining on Feb 3).  
-  *Mar-2026 (Row 58):* Rahul Verma is paid full gross Rs. 1,10,000 with zero clawback or deduction.
-- **Employee Inquiry:** `02.eml` (06 Mar 2026 11:02 IST)  
-  *Rahul Verma to Fatima Sheikh:* *"The amount looks higher than what I expected for a partial month. Is that right?"*
-- **Payroll Acknowledgement:** `03.eml` (10 Mar 2026 15:40 IST)  
-  *Fatima Sheikh to Rahul Verma:* *"Will check and get back."*
+- `Employee_Master.xlsx` (Row 21): Rahul Verma Join Date `2026-02-03`.
+- `01.eml` (28 Feb 2026): Karthik states he ran Feb payroll using the Jan sheet and added the new joiner because Fatima was out.
+- `Payroll_Register_Jan-Mar_2026.xlsx` (Rows 39 & 58): Rahul Verma was credited for 28 payable days in February (full month gross). March payroll credited 31 payable days with zero clawback or adjustment.
+- `02.eml` & `03.eml` (6 & 10 Mar 2026): Rahul queried the high payslip for a partial month; Fatima promised to check and get back.
 
-### 2. Discrepancy Analysis
-Rahul joined on 3 Feb 2026. In a 28-day month, days payable should have been 26 days (`26/28 * Rs. 1,10,000 = Rs. 1,02,143`). Overpayment was Rs. 7,857. Karthik copied the January template without adjusting days payable. Rahul reported it honestly, Fatima acknowledged it, but March payroll was processed without adjustment.
-
-### 3. Governance & Privacy Constraint
-Under CFO Meera's directive (`T2_CFO_Call`), individual salary figures must **never** be presented to CEO Ananya. Therefore, the Cockpit must report the procedural controls defect (un-prorated joiner pay and absence of dual-authorization) without revealing Rahul's specific salary numbers in executive queries.
-
-### 4. Candidate Assessment & Recommendation
-- **Cockpit Decision:** Flag this as an internal accounting control risk (Risk #5). Mask individual compensation figures in CEO queries via the service privacy layer.
+### 2. Human Conflict Decision
+- **Finding:** Procedural defect in payroll processing confirmed across email and payroll sheets.
+- **Privacy Constraint:** Individual salary numbers are strictly confidential and must never be exposed to executive queries. The cockpit reports the audit defect (lack of pro-ration and absence of dual authorization) while redacting monetary figures.
 - **Confidence:** **HIGH**
-- **What Would Change Conclusion:** April payroll adjustments or Keka module migration reconciliation notes.
-- **Human Decision Status:** **`UNRESOLVED`** (Pending Candidate Confirmation)
+- **Human Decision Status:** **`UNRESOLVED`** (Pending reconciliation in Keka payroll module).

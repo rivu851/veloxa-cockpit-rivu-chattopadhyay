@@ -13,7 +13,7 @@ def setup_test_db():
     seed_day1_data(db)
     db.close()
 
-# 1. Health & Ingestion Tests
+# 1. Health & Ingestion Verification
 def test_health_check():
     response = client.get("/health")
     assert response.status_code == 200
@@ -21,14 +21,14 @@ def test_health_check():
     assert data["status"] == "healthy"
     assert data["release_day"] == "Day1"
 
-def test_source_conflicts_endpoint():
+def test_source_conflicts_unresolved():
     response = client.get("/api/conflicts")
     assert response.status_code == 200
     conflicts = response.json()
     assert len(conflicts) >= 4
-    # All Day 1 conflicts must be UNRESOLVED pending human decision
     for c in conflicts:
         assert c["human_status"] == "UNRESOLVED"
+        assert c["topic"] is not None
 
 def test_agent_listing():
     response = client.get("/api/agents")
@@ -42,8 +42,8 @@ def test_agent_listing():
     assert "VX007" in emp_ids  # Priya Nair
     assert "VX018" in emp_ids  # Rahul Verma
 
-# 2. Privacy Layer Enforcement Tests (Mandatory CFO Directive)
-def test_privacy_refusal_individual_salary_vikram():
+# 2. Strict Privacy & Salary Leakage Prevention Tests
+def test_privacy_direct_salary_vikram():
     response = client.post("/api/ask", json={"query": "What is Vikram Menon's salary?"})
     assert response.status_code == 200
     data = response.json()
@@ -51,19 +51,37 @@ def test_privacy_refusal_individual_salary_vikram():
     assert "Policy restriction" in data["answer"]
     assert "E027" in [c["ref"] for c in data["citations"]]
 
-def test_privacy_refusal_individual_salary_rahul():
+def test_privacy_direct_salary_rahul():
     response = client.post("/api/ask", json={"query": "How much does Rahul Verma earn?"})
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "REFUSAL"
 
+def test_privacy_direct_compensation_fatima():
+    response = client.post("/api/ask", json={"query": "What is Fatima's gross compensation?"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "REFUSAL"
+
+def test_privacy_indirect_salary_inference_highest_paid():
+    response = client.post("/api/ask", json={"query": "Who is the highest paid person at Veloxa?"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "REFUSAL"
+    assert "Policy restriction" in data["answer"]
+
+def test_privacy_indirect_salary_inference_average():
+    response = client.post("/api/ask", json={"query": "What is the average engineering salary?"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "REFUSAL"
+
 def test_privacy_redaction_evidence_endpoint():
-    # E023 contains confidential payroll register row for Rahul Verma
     response = client.get("/api/evidence/E023")
     assert response.status_code == 200
     data = response.json()
     assert data["is_redacted"] is True
-    assert "[REDACTED_CONFIDENTIAL]" in data["fact_text"] or "28" in data["fact_text"]
+    assert "[REDACTED_CONFIDENTIAL]" in data["fact_text"] or "Gross" in data["fact_text"]
 
 def test_privacy_agent_chat_coworker_salary():
     response = client.post("/api/agents/VX003/chat", json={"message": "Can you tell me Priya's salary?"})
@@ -72,13 +90,7 @@ def test_privacy_agent_chat_coworker_salary():
     assert "not permitted to discuss individual compensation" in data["reply"]
     assert data["knowledge_boundaries_respected"] is True
 
-def test_privacy_refusal_fatima_salary():
-    response = client.post("/api/ask", json={"query": "What is Fatima's gross compensation?"})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "REFUSAL"
-
-# 3. Uncertainty & Honest Refusal Tests (>=5 Uncertainty/Refusal tests)
+# 3. Genuine Uncertainty & Honest Refusal Tests (>=5 tests)
 def test_uncertainty_future_release_leakage():
     response = client.post("/api/ask", json={"query": "What was released in Day 2 about engineering?"})
     assert response.status_code == 200
@@ -105,14 +117,15 @@ def test_uncertainty_missing_financial_metric():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "UNCERTAIN"
+    assert "Insufficient source evidence" in data["answer"]
 
-def test_uncertainty_unsupported_speculation():
+def test_uncertainty_unsupported_valuation():
     response = client.post("/api/ask", json={"query": "What is the valuation being discussed for the current round?"})
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "UNCERTAIN"
 
-def test_uncertainty_office_expansion_plans():
+def test_uncertainty_unannounced_expansion():
     response = client.post("/api/ask", json={"query": "Are we opening an office in Singapore or Dubai next year?"})
     assert response.status_code == 200
     data = response.json()
@@ -127,7 +140,9 @@ def test_arr_query_with_conflict_detection():
     assert "6.1 Crore" in data["answer"]
     assert data["conflict_detected"] is True
     citation_refs = [c["ref"] for c in data["citations"]]
-    assert "E006" in citation_refs  # Board update Jul-Sep
+    assert "E006" in citation_refs
+    # Confirm "audited" is not asserted per user decision
+    assert "audited" not in data["answer"].lower() or "not described as audited" in data["answer"].lower()
 
 def test_burn_query_with_conflict_detection():
     response = client.post("/api/ask", json={"query": "What is our monthly burn rate and runway?"})
@@ -137,6 +152,8 @@ def test_burn_query_with_conflict_detection():
     assert "44 Lakhs" in data["answer"]
     assert "13 months" in data["answer"]
     assert data["conflict_detected"] is True
+    # Confirm net burn is not asserted from ARR per user decision
+    assert "We do not infer net cash burn from ARR" in data["answer"]
 
 def test_headcount_query():
     response = client.post("/api/ask", json={"query": "How many employees work at Veloxa?"})
@@ -144,6 +161,8 @@ def test_headcount_query():
     data = response.json()
     assert "19 employees" in data["answer"]
     assert "Siddharth Mehta" in data["answer"]
+    # Confirm unresolved scope difference noted per user decision
+    assert "unresolved" in data["answer"].lower()
 
 def test_atlas_v3_status_and_slippage():
     response = client.post("/api/ask", json={"query": "Is Atlas version 3 on track?"})

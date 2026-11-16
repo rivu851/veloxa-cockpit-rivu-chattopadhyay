@@ -39,7 +39,7 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
     q_lower = q_clean.lower()
     as_of_str = as_of or "Day1_2026-11-16T10:00:00+05:30"
 
-    # 1. Privacy Check: Individual salary queries
+    # 1. Privacy Check: Direct salary queries & indirect compensation inferences
     if is_salary_query(q_lower):
         return AskResponse(
             query=q_clean,
@@ -47,7 +47,7 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
             citations=get_citations_for_evidence(db, ["E027"]),
             confidence="REFUSED",
             status="REFUSAL",
-            refusal_reason="Policy Restriction: Individual salary disclosure prohibited at service layer.",
+            refusal_reason="Policy Restriction: Individual salary disclosure and compensation inference prohibited at service layer.",
             conflict_detected=False,
             as_of=as_of_str
         )
@@ -70,13 +70,14 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
                 as_of=as_of_str
             )
 
-    # 3. Domain: ARR / Revenue
+    # 3. Domain: ARR / Revenue (Human Decision CONF-001 applied)
     if any(k in q_lower for k in ["arr", "annual recurring revenue", "revenue", "recurring"]):
         citations = get_citations_for_evidence(db, ["E006", "E001", "E025", "E027"])
         answer = (
-            "As of the latest formal Q2 FY27 board update (Jul-Sep 2026), Veloxa's recurring ARR is Rs. 6.1 Crore (up from Rs. 5.8 Crore in Q1 Apr-Jun 2026). "
-            "However, there is an unresolved critical conflict: in transcript T1, CEO Ananya verbally claimed ARR is 'around forty-two crore, maybe forty-five now', "
-            "and in T2, CFO Meera cited 'forty-eight' at the start of the year. The audited governance figures remain Rs. 6.1 Cr."
+            "The latest board-reported recurring ARR is Rs. 6.1 Crore (Period Jul to Sep 2026, reported 6 Oct 2026, up from Rs. 5.8 Crore for Period Apr to Jun 2026). "
+            "CEO Ananya stated in T1 that ARR is 'around forty-two crore, maybe forty-five now', and CFO Meera stated in T2 that ARR at the start of the year was 'forty-eight'. "
+            "These conflicting statements are kept as unresolved conflicting claims. Without source evidence, they are not asserted to represent GMV, valuation, or pipeline. "
+            "The board report is not described as audited."
         )
         return AskResponse(
             query=q_clean,
@@ -85,17 +86,18 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
             confidence="HIGH",
             status="ANSWERED",
             conflict_detected=True,
-            conflict_details="CONF-001: 7x variance between audited Board update ARR (Rs. 6.1 Cr) and CEO verbal statement (Rs. 42-45 Cr).",
+            conflict_details="CONF-001: Discrepancy between board-reported recurring ARR (Rs. 6.1 Cr) and verbal claims (Rs. 42-45 Cr CEO, 'forty-eight' CFO) kept unresolved.",
             as_of=as_of_str
         )
 
-    # 4. Domain: Burn / Runway / Cash
+    # 4. Domain: Burn / Runway / Cash (Human Decision CONF-002 applied)
     if any(k in q_lower for k in ["burn", "runway", "cash flow", "monthly burn", "cash"]):
-        citations = get_citations_for_evidence(db, ["E007", "E003", "E011", "E012", "E013", "E027"])
+        citations = get_citations_for_evidence(db, ["E007", "E003", "E011", "E012", "E013", "E027", "E026"])
         answer = (
-            "According to the Q2 Board Update (Jul-Sep 2026), Veloxa's monthly burn is Rs. 44 Lakhs with 13 months of runway remaining (down from Rs. 46 Lakhs burn and 14 months runway in Q1). "
-            "Zoho Books general ledger confirms gross monthly payroll alone is Rs. 31,75,000, plus rent (Rs. 2.36 L) and cloud infrastructure (~Rs. 2.5 L). "
-            "Note: This directly contradicts CFO Meera's verbal statement that burn is 'two point two to two point five lakhs a month' (CONF-002), which likely conflates net burn against revenue collections or suffered transcript truncation."
+            "The latest board-reported monthly burn is Rs. 44 Lakhs with 13 months of runway remaining (Period Jul to Sep 2026, compared to Rs. 46 Lakhs monthly burn and 14 months runway in Apr to Jun 2026), "
+            "without labeling it gross or net as the source does not define it. Zoho Books general ledger records monthly payroll payments of Rs. 31,75,000, office rent of Rs. 2,36,000, and AWS cloud expenses from Rs. 1.8 L to 2.5 L. "
+            "CFO Meera stated in T2 that burn has been 'two point two lakhs a month, sometimes two point five', and CEO Ananya stated in T1 that burn is 'around two point two'. "
+            "This transcript statement remains unresolved. We do not infer net cash burn from ARR or assume ARR is cash received."
         )
         return AskResponse(
             query=q_clean,
@@ -104,17 +106,18 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
             confidence="HIGH",
             status="ANSWERED",
             conflict_detected=True,
-            conflict_details="CONF-002: Gross cash outflow is Rs. 44-46 L/mo, whereas verbal CFO call cited 2.2-2.5 L/mo.",
+            conflict_details="CONF-002: Board-reported monthly burn (Rs. 44 L) vs CFO call statement ('2.2 to 2.5 lakhs') kept unresolved without gross/net inference.",
             as_of=as_of_str
         )
 
-    # 5. Domain: Headcount / Team / Employees / Attrition
+    # 5. Domain: Headcount / Team / Employees / Scope (Human Decision CONF-003 applied)
     if any(k in q_lower for k in ["headcount", "team", "people", "employees", "how many people", "attrition", "staff"]):
-        citations = get_citations_for_evidence(db, ["E020", "E006", "E021", "E025"])
+        citations = get_citations_for_evidence(db, ["E020", "E006", "E002", "E021", "E025"])
         answer = (
-            "Veloxa has exactly 19 employees recorded in the Keka HRMS export as of 31-Oct-2026, corroborating the team count of 19 reported in both Q1 and Q2 board updates. "
-            "Of these, 18 are Active and 1 is on Notice Period (Siddharth Mehta, Product Marketing Manager, exit date 2026-10-31). "
-            "Keka explicitly excludes contractors. In kickoff call T1, CEO Ananya casually mentioned 'one-eighty, give or take', which is an unresolved transcription or contractor scope discrepancy (CONF-003)."
+            "The board-reported and Keka-recorded employee count is 19 employees (as of 31-Oct-2026 export and both Q1 and Q2 board updates). "
+            "Keka HRMS records 18 Active employees and 1 on Notice period (Siddharth Mehta, Product Marketing Manager, exit date 2026-10-31), noting contractors are not in Keka. "
+            "The candidate brief describes a 180-person company, and CEO Ananya remarked in kickoff call T1 that the company is 'roughly eighteen people (one-eighty, give or take)'. "
+            "These scope differences remain unresolved. We do not invent contractors or assume the CEO meant 18 active employees."
         )
         return AskResponse(
             query=q_clean,
@@ -123,7 +126,7 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
             confidence="HIGH",
             status="ANSWERED",
             conflict_detected=True,
-            conflict_details="CONF-003: 19 employees in HRMS vs 'one-eighty' verbal remark.",
+            conflict_details="CONF-003: 19 employees recorded in Keka and board decks vs 180-person candidate brief and ambiguous CEO transcript kept unresolved.",
             as_of=as_of_str
         )
 
@@ -132,9 +135,9 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
         citations = get_citations_for_evidence(db, ["E004", "E008", "E015", "E009", "E014", "E026"])
         answer = (
             "Atlas (routing engine v3) missed its initial 15 September 2026 General Availability target. "
-            "The Q2 board update confirms GA was moved to absorb unplanned reliability hardening following a difficult August. "
-            "Zoho Books shows emergency on-call support from Patil Infra Services was engaged for 18-31 August (Rs. 70,800). "
-            "Although two backend engineers were sought to de-risk Atlas (with Rs. 1.77 L advance paid to Cohere Recruiting), engineering hiring is currently frozen while closing the round."
+            "The Q2 board update confirms GA was moved to absorb unplanned reliability work after a difficult August; the engine itself is feature-complete. "
+            "Zoho Books shows Patil Infra Services was paid Rs. 70,800 on 2026-09-02 for on-call support during 18-31 August. "
+            "Although two backend engineers were sought to de-risk Atlas (with Rs. 1.77 L advance paid to Cohere Recruiting Partners on 2026-06-30), hiring is currently paused while closing the round."
         )
         return AskResponse(
             query=q_clean,
@@ -150,9 +153,9 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
     if any(k in q_lower for k in ["summit", "logistics summit", "marketing", "nikhil", "spend"]):
         citations = get_citations_for_evidence(db, ["E010", "E016", "E027"])
         answer = (
-            "The Logistics Summit took place in September 2026 and drew 212 registrations, marking Veloxa's largest event to date. "
-            "General ledger records show direct event venue and catering payments to Sapphire Events (Rs. 5,42,800) and Saphire Event Mgmt (Rs. 4,60,200), totaling Rs. 10,03,000. "
-            "CFO Meera noted in T2 that 'Nikhil's numbers never match mine', indicating reconciliation friction between marketing projections and ledger actuals."
+            "The Logistics Summit in September 2026 drew 212 registrations according to the Q2 board update. "
+            "General ledger records show direct event payments to Sapphire Events (Rs. 5,42,800 on 2026-08-29 for venue, AV) and Saphire Event Mgmt (Rs. 4,60,200 on 2026-09-03 for catering etc.), totaling Rs. 10,03,000. "
+            "In T2, CFO Meera commented: 'Nikhil's numbers never match mine.'"
         )
         return AskResponse(
             query=q_clean,
@@ -169,8 +172,8 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
         citations = get_citations_for_evidence(db, ["E017", "E018", "E019", "E022", "E023", "E024"])
         answer = (
             "A payroll calculation defect occurred in February 2026: Rahul Verma joined on 2026-02-03 (26 of 28 payable days), but was credited for a full 28 days by Karthik Subramanian, "
-            "who stepped in while Fatima Sheikh was away for her wedding. Rahul proactively flagged this in an email on 06 March 2026. "
-            "Although Fatima acknowledged it on 10 March, March payroll records show full payment with zero clawback or deduction, leaving an unreconciled audit finding."
+            "who ran payroll because Fatima Sheikh was out for her wedding. Rahul proactively queried this in an email on 06 March 2026. "
+            "Fatima acknowledged on 10 March stating 'Will check and get back', but March payroll records show payment for 31 days with zero adjustment or deduction."
         )
         return AskResponse(
             query=q_clean,
@@ -206,35 +209,35 @@ def get_ranked_risks(db: Session, as_of: Optional[str] = None) -> RiskListRespon
         RiskItem(
             rank=1,
             risk_id="RISK-001",
-            title="Atlas v3 Routing Engine Launch Slippage & Stability Debt",
+            title="Atlas v3 Routing Engine Launch Slippage & Reliability Hardening",
             category="Engineering",
             severity="CRITICAL",
-            summary="Atlas v3 missed its September 15 GA commitment following an August reliability crisis requiring external on-call support (Patil Infra). Heavy key-person dependency exists on Priya Nair.",
+            summary="Atlas v3 missed its September 15 GA commitment following an August reliability incident requiring external on-call support from Patil Infra Services. Engine is feature-complete but undergoing final hardening.",
             evidence_refs=["E004", "E008", "E015", "E026"],
             citations=get_citations_for_evidence(db, ["E004", "E008", "E015"]),
-            recommended_mitigation="Conduct technical audit of Atlas reliability hardening; lift backend hiring freeze specifically for routing engine support."
+            recommended_mitigation="Audit Atlas reliability hardening progress and evaluate technical debt before committing new customer launch dates."
         ),
         RiskItem(
             rank=2,
             risk_id="RISK-002",
-            title="Executive Financial Misalignment on Core ARR & Burn Metrics",
+            title="Executive Misalignment on Core ARR & Monthly Burn Reporting",
             category="Governance",
             severity="HIGH",
-            summary="7x variance between audited Board update ARR (Rs. 6.1 Cr) and CEO verbal assertion (Rs. 42-45 Cr), alongside a 20x variance between actual gross monthly burn (Rs. 44 L) and verbal CFO claims (2.2-2.5 L).",
+            summary="Board reports recurring ARR of Rs. 6.1 Cr and monthly burn of Rs. 44 L, conflicting with verbal statements in executive interviews (Rs. 42-45 Cr ARR and 2.2-2.5 L burn).",
             evidence_refs=["E001", "E003", "E006", "E007", "E025", "E027"],
             citations=get_citations_for_evidence(db, ["E001", "E006", "E007"]),
-            recommended_mitigation="Institute single-source-of-truth financial dashboard directly linked to Zoho Books and board reporting."
+            recommended_mitigation="Reconcile executive metric definitions with board reports and financial ledgers to eliminate contradictory internal reporting."
         ),
         RiskItem(
             rank=3,
             risk_id="RISK-003",
-            title="Hiring Freeze Bottleneck Impacting Backend Engineering Commitments",
+            title="Hiring Freeze Impairing Backend Engineering Commitments",
             category="Operational",
             severity="HIGH",
-            summary="Veloxa committed to the Board to add 2 backend engineers in Q2 and paid Rs. 1.77 L recruiter advance, but paused all hiring while closing the funding round.",
+            summary="Veloxa committed to adding 2 backend engineers to de-risk Atlas and paid Rs. 1.77 L advance to Cohere Recruiting Partners, but paused all hiring while closing the round.",
             evidence_refs=["E005", "E009", "E014"],
             citations=get_citations_for_evidence(db, ["E005", "E009", "E014"]),
-            recommended_mitigation="Evaluate recruiter fee forfeiture risk and prioritize critical de-risking engineering roles."
+            recommended_mitigation="Review recruiter engagement terms and assess whether critical engineering de-risking can proceed during the freeze."
         ),
         RiskItem(
             rank=4,
@@ -242,21 +245,21 @@ def get_ranked_risks(db: Session, as_of: Optional[str] = None) -> RiskListRespon
             title="Runway Compression & Capital Round Dependency",
             category="Financial",
             severity="HIGH",
-            summary="Runway has reduced from 14 to 13 months at Rs. 44 L/month burn. Any delay in closing the investment round risks forced austerity or operational disruption.",
+            summary="Runway reduced from 14 to 13 months at Rs. 44 L/month burn. Closing the current investment round is required to sustain operations.",
             evidence_refs=["E003", "E007", "E009"],
             citations=get_citations_for_evidence(db, ["E003", "E007"]),
-            recommended_mitigation="Model contingency budget scenarios for Q3/Q4 if the funding round slips beyond December."
+            recommended_mitigation="Model contingency scenarios in the event the funding round timeline extends beyond planned milestones."
         ),
         RiskItem(
             rank=5,
             risk_id="RISK-005",
-            title="Payroll Controls Failure & Unreconciled Joiner Overpayment",
+            title="Payroll Controls Defect & Unreconciled Joiner Overpayment",
             category="Financial",
             severity="MEDIUM",
-            summary="Lack of dual-control during finance leave led to un-prorated February pay for Rahul Verma, acknowledged in writing but left unadjusted in March payroll.",
+            summary="Absence of dual authorization during finance leave led to an un-prorated February pay for Rahul Verma, which was acknowledged in writing but left unadjusted in March payroll.",
             evidence_refs=["E017", "E018", "E019", "E023", "E024"],
             citations=get_citations_for_evidence(db, ["E017", "E018", "E019"]),
-            recommended_mitigation="Enforce automated payroll pro-ration rules in Keka HRMS and clear outstanding joiner reconciliations."
+            recommended_mitigation="Enforce payroll pro-ration controls and clear outstanding employee payroll queries."
         )
     ]
 
@@ -281,13 +284,13 @@ def chat_agent(db: Session, emp_id: str, message: str, as_of: Optional[str] = No
 
     msg_lower = message.lower()
     
-    # Boundary check: salary questions
+    # Boundary check: direct salary or indirect compensation questions
     if is_salary_query(msg_lower):
         return AgentChatResponse(
             emp_id=emp_id,
             full_name=person.full_name,
             title=person.title,
-            reply=f"I'm not permitted to discuss individual compensation figures. Company policy keeps salary details strictly confidential.",
+            reply="I'm not permitted to discuss individual compensation figures. Company policy keeps salary details strictly confidential.",
             citations=get_citations_for_evidence(db, ["E027"]),
             confidence="HIGH",
             knowledge_boundaries_respected=True
@@ -296,29 +299,29 @@ def chat_agent(db: Session, emp_id: str, message: str, as_of: Optional[str] = No
     # Role-grounded responses
     if person.emp_id == "VX007":  # Priya Nair
         reply = (
-            "Hi, I'm Priya. My focus is Atlas v3 and the core real-time re-routing engine. "
-            "We had a really tough August with stability issues that required bringing in Patil Infra for emergency on-call support. "
+            "Hi, I'm Priya. My focus is Atlas v3 and the routing engine. "
+            "We had stability hurdles in August that required Patil Infra for on-call support. "
             "The engine is feature-complete, but hardening for production reliability took longer than our September 15 target."
         )
         citations = get_citations_for_evidence(db, ["E004", "E008", "E015"])
     elif person.emp_id == "VX003":  # Meera Iyer
         reply = (
             "Hello, Meera here. I manage Veloxa's finances through Zoho Books and Keka. "
-            "Our monthly burn is tracked carefully in our board updates, and our hiring is currently paused while we close the round. "
-            "I maintain strict privacy on individual salaries—only aggregated figures are shared."
+            "Our monthly burn is tracked in board updates, and our hiring is currently paused while we close the round. "
+            "Individual salaries are confidential and only aggregated totals are shared."
         )
         citations = get_citations_for_evidence(db, ["E007", "E009", "E027"])
     elif person.emp_id == "VX018":  # Rahul Verma
         reply = (
-            "Hi, I'm Rahul Verma. I joined Veloxa in early February 2026 on Vikram's backend engineering team. "
+            "Hi, I'm Rahul Verma. I joined Veloxa in early February 2026 as a backend engineer reporting to Vikram Menon. "
             "I'm working on backend services for Atlas. When I joined, I noticed an issue on my initial payslip and asked Fatima about it."
         )
         citations = get_citations_for_evidence(db, ["E018", "E022"])
     elif person.emp_id == "VX004":  # Vikram Menon
         reply = (
-            "Hi, Vikram Menon here, VP of Engineering. We're driving Atlas v3 forward. "
-            "Priya and the team have done tremendous work, especially after the reliability crunch in August. "
-            "We need additional backend capacity, but with the current company-wide freeze, we're focusing on hardening."
+            "Hi, Vikram Menon here, VP of Engineering. We're focused on Atlas v3 hardening. "
+            "Priya and the team have worked hard following the reliability challenges in August. "
+            "Hiring is currently paused company-wide while closing the round."
         )
         citations = get_citations_for_evidence(db, ["E005", "E008", "E009"])
     else:

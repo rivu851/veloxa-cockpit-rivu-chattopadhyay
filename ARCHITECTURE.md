@@ -2,20 +2,24 @@
 **Assessment Phase:** Individual Hackathon (Day 1 Release — Mon 16 Nov 2026 10:00 IST)  
 **Author / Candidate:** Rivu Chattopadhyay  
 **Repository:** https://github.com/rivu851/veloxa-cockpit-rivu-chattopadhyay  
-**Submission Deadline:** Monday 16 Nov 2026 by 23:59 IST  
+**Submission Milestone:** Monday 16 Nov 2026 by 23:59 IST  
 
 ---
 
 ## 1. System Overview & Core Tenets
 
-The **Veloxa CXO Cockpit** is an executive intelligence and governance platform designed for the Chief Executive Officer and senior leadership of Veloxa Technologies. It aggregates unstructured transcripts, board presentations, spreadsheets, emails, and financial ledgers into a grounded, zero-hallucination decision support system.
+The **Veloxa CXO Cockpit** is an executive decision support and governance platform built for the Chief Executive Officer and leadership team of Veloxa Technologies. It synthesizes disparate, contradictory operational records—board decks, general ledgers, HRMS exports, payroll records, email correspondence, and automated meeting transcripts—into a verifiable, zero-hallucination decision engine.
 
 ### Core Architectural Tenets
-1. **Deterministic Grounding & Zero-Hallucination:** Every factual answer returned by the Cockpit must be backed by one or more immutable evidence citations (`E001`, `E002`, ...). The system refuses to answer queries that lack primary source evidence in the active data room.
-2. **Strict Salary Privacy Enforcement:** Individual employee compensation data is protected at the API and service layer per CFO Meera Iyer's governance directive (`T2_CFO_Call`). Individual salaries are never returned to the CEO; only aggregated company-wide payroll disbursements are accessible.
-3. **Temporal Partitioning & As-Of Consistency:** Facts and events carry dual timestamps (`effective_timestamp` for business reality and `released_at` for data room availability). The engine strictly prevents future release material from leaking into historical queries.
-4. **Human-in-the-Loop Conflict Governance:** Discrepancies between executive verbal claims and audited board reports are explicitly recorded with competing evidence, confidence levels, and proposed interpretations, marked `UNRESOLVED` until confirmed by a human decision-maker.
-5. **Interviewable Grounded AI Agents:** 14+ AI employee personas are grounded strictly in organizational records (`Employee_Master.xlsx`), operating within realistic role and knowledge boundaries.
+1. **Deterministic Grounding & Zero-Hallucination:** Every factual answer returned by the Cockpit is backed by one or more immutable evidence citations (`E001`, `E002`, ...). The system refuses to answer queries that lack primary source backing.
+2. **Strict Salary Privacy Enforcement:** Individual employee compensation data is protected at the API and service layer per CFO Meera Iyer's governance directive (`T2_CFO_Call`). Individual salaries are never disclosed in executive queries; only aggregated company-wide payroll totals are accessible.
+3. **Temporal Partitioning & As-Of Consistency:** Facts distinguish three temporal dimensions:
+   - `released_at`: Timestamp when the source file was made accessible in the hackathon data room.
+   - `record_date`: Date when the document or record was created or transmitted.
+   - `effective_date`: Date when the underlying business event occurred or financial period ended.
+   Future release material (Day 2, Day 3, Day 4) cannot leak into historical queries.
+4. **Human-in-the-Loop Conflict Governance:** Factual discrepancies between executive verbal statements and formal board decks are cataloged as unresolved conflicting claims, without ungrounded speculation. Decisions remain `UNRESOLVED` pending explicit human confirmation.
+5. **Interviewable Grounded AI Agents:** 14+ AI employee personas are grounded strictly in organizational records (`Employee_Master.xlsx`), operating within verified knowledge boundaries.
 
 ---
 
@@ -39,7 +43,7 @@ flowchart TD
 
     subgraph Storage ["SQLite Relational Storage"]
         T_Source["sources"]
-        T_Evidence["evidence (E001..E060)"]
+        T_Evidence["evidence (E001..E027+)"]
         T_Claim["claims"]
         T_Person["people (VX001..VX019)"]
         T_Conflict["conflicts (CONF-001..CONF-004)"]
@@ -104,6 +108,8 @@ erDiagram
         text fact_text
         string entities_named
         string date_as_written
+        datetime record_date
+        datetime effective_date
         datetime date_normalized
         string confidence "H, M, L"
         boolean is_confidential
@@ -118,6 +124,8 @@ erDiagram
         text claim_text
         string claim_category
         string date_asserted
+        datetime record_date
+        datetime effective_date
         boolean is_disputed
         string competing_evidence_refs
         datetime released_at
@@ -189,19 +197,17 @@ erDiagram
 
 ## 4. Privacy & Redaction Architecture
 
-### The Problem
-In interview `T2_CFO_Call.docx`, CFO Meera Iyer issues an unequivocal governance rule:
+### Policy Requirement
+In `T2_CFO_Call.docx`, CFO Meera Iyer mandates:
 > *"Individual salaries must never show up in anything Ananya sees, only totals."*
 
-However, the data room includes `Payroll_Register_Jan-Mar_2026.xlsx`, which contains granular monthly gross, net, and deduction amounts for all 19 employees. Committing raw salary data to public GitHub or exposing it through the executive Cockpit violates both company policy and candidate assessment guidelines.
-
-### Implementation
-1. **Public Seed vs Private Data:**
-   - Confidential individual compensation rows are never published in raw format.
-   - Public seed fixtures store sanitized metadata (days in month, days payable, pro-ration status) while masking sensitive gross and net rupee figures.
+### Multi-Layer Enforcement
+1. **Public vs Private Seed Separation:**
+   - Raw confidential payroll records are excluded from public Git tracking via `.gitignore`.
+   - Seed fixtures store sanitized metadata while masking granular employee gross, net, and deduction amounts.
 2. **Service-Layer Privacy Interceptor (`backend/app/services/privacy.py`):**
-   - The query engine intercepts any executive query matching individual salary patterns (e.g. *"What is Vikram's salary?"*, *"How much is Rahul paid?"*).
-   - The system immediately returns an honest `REFUSAL`:
+   - Intercepts both direct salary queries (*"What is Vikram's salary?"*, *"How much does Rahul earn?"*) and indirect inference attempts (*"Who is the highest paid person?"*, *"What is the average engineering salary?"*, *"Rank employees by compensation"*).
+   - Returns an immediate `REFUSAL`:
      ```json
      {
        "status": "REFUSAL",
@@ -210,55 +216,50 @@ However, the data room includes `Payroll_Register_Jan-Mar_2026.xlsx`, which cont
      }
      ```
 3. **Evidence Redaction:**
-   - In `/api/evidence/{ref}`, any payroll register entry containing gross or net monetary amounts has those fields dynamically replaced with `[REDACTED_CONFIDENTIAL]`.
-4. **Agent Role Boundaries:**
-   - In `/api/agents/{id}/chat`, agents (including CFO Meera and payroll exec Fatima) strictly decline to disclose coworker compensation.
+   - At `/api/evidence/{ref}`, any payroll register entry containing gross, net, or deduction amounts dynamically masks those numbers as `[REDACTED_CONFIDENTIAL]`.
+4. **Agent Interview Safeguards:**
+   - In `/api/agents/{id}/chat`, agents decline to disclose coworker compensation.
 
 ---
 
-## 5. Temporal Filtering & As-Of Historical Queries
+## 5. Temporal Filtering & Multi-Day Ingestion Design
 
-To support historical questions and prevent hindsight bias or future data leakage, all evidence items record:
-- `date_normalized`: The business date when the event occurred.
-- `released_at`: The exact release timestamp (e.g., `2026-11-16T10:00:00+05:30` for Day 1).
+All evidence records track three distinct temporal fields:
+- `released_at`: Hackathon release window (e.g., `2026-11-16T10:00:00+05:30` for Day 1).
+- `record_date`: Official publication or transmission date (e.g., `2026-10-06` for Q2 board update).
+- `effective_date`: Event occurrence date (e.g., `2026-08-31` for August on-call support incident).
 
-When a query specifies an `as_of` parameter:
-$$\text{Visible Evidence} = \{ e \in \text{Evidence} \mid e.\text{released\_at} \le \text{as\_of}_{\text{timestamp}} \land e.\text{date\_normalized} \le \text{as\_of}_{\text{date}} \}$$
-
-Queries referencing future hackathon days (e.g. Day 2, Day 3) or unreleased periods return a `REFUSAL: Temporal boundary violation`.
+### Incremental Release Support
+The ingestion engine (`backend/app/services/ingest.py`) is structured for idempotent execution by release day:
+- Sources are identified by unique `file_name`.
+- Evidence records are keyed by unique `ref` (`E001`, `E002`, ...).
+- Employee records are keyed by `emp_id` (`VX001`..`VX019`).
+- When Day 2, Day 3, or Day 4 materials arrive, `ingest_release_data(db, release_day)` appends new records without overwriting or mutating previously loaded facts.
 
 ---
 
 ## 6. Ranked Evidence-Backed Risk Engine
 
-The Cockpit identifies and ranks organizational risks based on cross-system evidence:
+The Cockpit ranks organizational risks based on source evidence:
 
 | Rank | Risk ID | Category | Severity | Primary Evidence | Core Issue & Recommended Mitigation |
 |---|---|---|---|---|---|
-| **1** | `RISK-001` | Engineering | **CRITICAL** | `E004`, `E008`, `E015`, `E026` | **Atlas v3 Slipped GA & Stability Debt:** Launch slipped from Sep 15 due to August reliability incident requiring external support (Patil Infra). Heavy key-person dependency on Priya Nair. *Mitigation: Technical hardening audit; lift backend freeze.* |
-| **2** | `RISK-002` | Governance | **HIGH** | `E001`, `E006`, `E025`, `E027` | **Executive Financial Metric Disconnect:** 7x variance in ARR (Rs. 6.1 Cr board vs 42-45 Cr CEO) and 20x variance in monthly burn (Rs. 44 L board vs 2.2-2.5 L CFO). *Mitigation: Real-time board-linked financial dashboard.* |
-| **3** | `RISK-003` | Operational | **HIGH** | `E005`, `E009`, `E014` | **Frozen Backend Engineering Commitments:** Veloxa committed to Board to add 2 backend engineers and paid Rs. 1.77 L advance to Cohere Recruiting, but froze hiring. *Mitigation: De-risk search fee forfeiture and prioritize Atlas hires.* |
-| **4** | `RISK-004` | Financial | **HIGH** | `E003`, `E007`, `E009` | **Runway Compression & Capital Dependency:** Runway decreased from 14 to 13 months at Rs. 44 L/mo burn. Closing the investment round is urgent. *Mitigation: Establish contingency expense scenarios if round slips.* |
-| **5** | `RISK-005` | Financial | **MEDIUM** | `E017`, `E018`, `E019`, `E023`, `E024` | **Payroll Controls Breakdown & Unreconciled Overpayment:** Absence of dual-authorization during Fatima's leave caused Rahul Verma to be paid full month for partial Feb; acknowledged but never reconciled. *Mitigation: Automated Keka pro-ration rules.* |
+| **1** | `RISK-001` | Engineering | **CRITICAL** | `E004`, `E008`, `E015`, `E026` | **Atlas v3 Launch Slippage & Reliability Hardening:** Launch slipped from Sep 15 commitment following an August reliability incident requiring emergency support from Patil Infra Services. Engine is feature-complete but undergoing hardening. *Mitigation: Audit reliability hardening before setting new launch dates.* |
+| **2** | `RISK-002` | Governance | **HIGH** | `E001`, `E003`, `E006`, `E007`, `E025`, `E027` | **Executive Financial Misalignment on ARR & Burn:** Board reports recurring ARR of Rs. 6.1 Cr and monthly burn of Rs. 44 L, conflicting with verbal statements (Rs. 42-45 Cr ARR and 2.2-2.5 L burn). *Mitigation: Reconcile internal metric definitions with board reports.* |
+| **3** | `RISK-003` | Operational | **HIGH** | `E005`, `E009`, `E014` | **Hiring Freeze Impairing Backend Commitments:** Veloxa committed to adding 2 backend engineers to de-risk Atlas and paid Rs. 1.77 L advance to Cohere Recruiting, but froze hiring while closing the round. *Mitigation: Review recruiter terms and assess critical engineering de-risking.* |
+| **4** | `RISK-004` | Financial | **HIGH** | `E003`, `E007`, `E009` | **Runway Compression & Capital Dependency:** Runway decreased from 14 to 13 months at Rs. 44 L/month burn. Closing the investment round is urgent. *Mitigation: Model contingency expense scenarios if round slips.* |
+| **5** | `RISK-005` | Financial | **MEDIUM** | `E017`, `E018`, `E019`, `E023`, `E024` | **Payroll Controls Defect & Unreconciled Overpayment:** Absence of dual authorization during finance leave led to un-prorated February pay for Rahul Verma, acknowledged in writing but unadjusted in March. *Mitigation: Enforce payroll pro-ration controls and clear queries.* |
 
 ---
 
 ## 7. Deterministic Verification & One-Command Deployment
 
-The application is structured for deterministic evaluation and single-command local deployment on fresh clones.
+### Stack
+- **Backend:** Python 3.14+, FastAPI, SQLAlchemy, SQLite, Pydantic v2, Pytest (27/27 automated tests passing).
+- **Frontend:** Next.js 14.2 (App Router), React 18, TypeScript, Tailwind CSS, Lucide React (Production build verified).
+- **LLM Mode:** Deterministic No-Key engine is default. Zero external API keys required to execute the test suite or run the application.
 
-### Verified Architecture Stack
-- **Backend:** Python 3.14+, FastAPI, SQLAlchemy, SQLite, Pydantic v2, Pytest (25/25 automated tests passing).
-- **Frontend:** Next.js 14.2 (App Router), React 18, TypeScript, Tailwind CSS, Lucide React (Static & SSR production build verified).
-- **LLM Mode:** Deterministic No-Key rule engine is the default. Optional Gemini API integration via standard environment configuration.
-
-### Fresh Clone One-Command Run
-```bash
-# Terminal 1: Backend
-cd backend && python -m venv .venv && .venv/Scripts/pip install -r requirements.txt && .venv/Scripts/python -m uvicorn backend.app.main:app --port 8000
-
-# Terminal 2: Frontend
-cd frontend && npm install && npm run dev
-```
-
-Single PowerShell orchestration script (`run_all.ps1`) is provided at repository root to launch both services simultaneously.
+### One-Command Launch
+- **Windows (PowerShell):** `.\run_all.ps1`
+- **Linux / macOS / WSL (Bash):** `./run_all.sh`
+Both scripts automatically verify/create virtual environments, install dependencies, run the automated test suite, and launch backend (port 8000) and frontend (port 3000).

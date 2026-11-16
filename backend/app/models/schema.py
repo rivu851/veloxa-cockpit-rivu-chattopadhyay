@@ -26,6 +26,10 @@ class Evidence(Base):
     """
     Direct granular fact extracted from a primary source file.
     Preserves exact sheet, page, and row citations.
+    Explicitly distinguishes:
+    1. released_at: timestamp when file was made available in the data room.
+    2. record_date: date when document/record was officially created or transmitted.
+    3. effective_date: date when underlying business event occurred or period concluded.
     """
     __tablename__ = "evidence"
 
@@ -37,7 +41,9 @@ class Evidence(Base):
     fact_text = Column(Text, nullable=False)
     entities_named = Column(String(255), nullable=True)
     date_as_written = Column(String(100), nullable=True)
-    date_normalized = Column(DateTime, nullable=True)
+    record_date = Column(DateTime, nullable=True)
+    effective_date = Column(DateTime, nullable=True)
+    date_normalized = Column(DateTime, nullable=True)  # For backward-compatible query filtering
     confidence = Column(String(5), default="H")  # H, M, L
     is_confidential = Column(Boolean, default=False)  # e.g. individual salary data
     released_at = Column(DateTime, nullable=False)
@@ -59,6 +65,8 @@ class Claim(Base):
     claim_text = Column(Text, nullable=False)
     claim_category = Column(String(50), nullable=False)  # ARR, Burn, Headcount, Product, Culture
     date_asserted = Column(String(100), nullable=True)
+    record_date = Column(DateTime, nullable=True)
+    effective_date = Column(DateTime, nullable=True)
     is_disputed = Column(Boolean, default=False)
     competing_evidence_refs = Column(String(255), nullable=True)
     released_at = Column(DateTime, nullable=False)

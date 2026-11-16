@@ -57,28 +57,37 @@
 
 ---
 
-## 4. Grounded AI Employee Personas (14 Key Agents)
+## 4. Grounded AI Employee Personas (14 Interviewable Agents Cohort)
 
-All AI agents are grounded in `Employee_Master.xlsx` records and primary data room interactions:
+All 19 employees from `Employee_Master.xlsx` are preserved in the `people` table. Exactly 14 are selected as active interviewable personas based on documented operational criteria:
 
-| Emp ID | Name | Role & Department | Grounded Source Facts | Permitted Personal Context (Logged Assumptions) |
+### Selection Criteria for Interviewable Cohort (14 Agents)
+1. **Executive Leadership:** Strategic direction, governance, and capital funding (`VX001` Ananya Rao, `VX003` Meera Iyer, `VX004` Vikram Menon, `VX005` Deepa Joshi, `VX006` Nikhil Bose).
+2. **Core Technical & Engineering:** Critical contributors to Atlas v3 routing engine and reliability (`VX007` Priya Nair, `VX009` Arjun Das, `VX012` Sneha Kulkarni, `VX018` Rahul Verma).
+3. **Commercial & Customer Growth:** Revenue execution and campaign metrics (`VX002` Manoj Kumar, `VX008` Divya Reddy, `VX011` Aisha Khan).
+4. **Financial Control & Payroll Operations:** Direct participants in ledger vouchers and payroll registers (`VX010` Karthik Subramanian, `VX014` Fatima Sheikh).
+
+### Documented Exclusion Criteria (5 Non-Interviewable Employees)
+- `VX013` (Siddharth Mehta, Product Marketing Manager): `is_interviewable=False`. On notice period with formal exit date 31-Oct-2026; excluded per offboarding governance.
+- `VX015` (Rohan Banerjee, Talent Partner): `is_interviewable=False`. Recruitment activities halted under company-wide hiring freeze.
+- `VX016` (Imran Siddiqui, Customer Support Lead): `is_interviewable=False`. Tier 2 ticket operations; non-core for Day 1 strategic decisions.
+- `VX017` (Lakshmi Pillai, HR & Office Executive): `is_interviewable=False`. Routine facility and clerical logistics; non-core.
+- `VX019` (Kavya Narayan, Support Associate): `is_interviewable=False`. Junior customer support associate; non-core.
+
+### Persona Assumption & Memory Safeguard Policy
+- **Fictional Context Boundary:** Permitted personal background (e.g. coffee preferences, cycling, cricket) is logged in `agent_memories` with `memory_type="personal_life"` and must include an explicit disclaimer:
+  > *"Note: Persona context is fictional background and does not constitute factual business evidence."*
+- **Memory Isolation:** Multi-turn conversational memory is strictly keyed to `emp_id`. An agent cannot retrieve another agent's dialogue turns.
+- **Privacy Barrier:** Conversational memory queries cannot bypass salary redaction or retrieve future-release material.
+
+---
+
+## 5. Formal Analytical Assumptions (Persisted in SQLite `assumptions` Table)
+
+| ID | Domain | Statement | Grounded Rationale | Risk if Wrong |
 |---|---|---|---|---|
-| **VX001** | Ananya Rao | CEO, Leadership | Founded Apr 2019. Focused on strategy, fundraising, customer growth. Relies on verbal updates from Meera and Vikram. | High-energy founder; executive communication style. |
-| **VX002** | Manoj Kumar | Sales Lead | Joined Jan 2020. Leads enterprise sales; manages Divya Reddy (AE). | Enterprise B2B sales professional based in Bengaluru. |
-| **VX003** | Meera Iyer | CFO | Joined Jun 2023. Oversees Zoho Books, Keka, financial controls, runway. Mandates strict salary confidentiality. | Rigorous financial controller; protective of accounting boundaries. |
-| **VX004** | Vikram Menon | VP Engineering | Joined Feb 2021. Manages engineering team, Atlas v3 delivery, AWS infrastructure. | Experienced engineering leader balancing technical delivery with the hiring pause. |
-| **VX005** | Deepa Joshi | Head of People & Ops | Joined Jul 2022. Manages Keka HRMS, Culture Amp surveys, talent partner Rohan and office exec Lakshmi. | People leader who considers current attrition normal. |
-| **VX006** | Nikhil Bose | Head of Marketing | Joined Sep 2024. Organized Logistics Summit (212 registrations). Manages Aisha and departing Sid Mehta. | Brand and growth marketer; numbers sometimes differ from finance ledger. |
-| **VX007** | Priya Nair | Staff Engineer | Joined Mar 2022. Architect of Atlas routing engine; key technical pillar for routing v3. | Principal engineer who bore the technical load during August reliability hardening. |
-| **VX008** | Divya Reddy | Account Executive | Joined Jan 2024. Based in Hyderabad; reports to Manoj Kumar. | Manages regional logistics enterprise client accounts. |
-| **VX009** | Arjun Das | Senior Frontend Engineer | Joined May 2023. Remote from Pune; reports to Vikram. | Develops CXO interface and dispatcher web dashboards. |
-| **VX010** | Karthik Subramanian | FP&A Manager | Joined Oct 2024. Reports to Meera. Prepares financial forecasts; studying for CFA; ran Feb 2026 payroll. | Diligent analyst balancing CFA studies with planning workloads. |
-| **VX011** | Aisha Khan | Performance Marketing Mgr | Joined Aug 2023. Reports to Nikhil. Manages Google Ads campaigns (~Rs. 80k-90k/mo). | Performance growth marketer managing digital spend. |
-| **VX012** | Sneha Kulkarni | Site Reliability Engineer | Joined Nov 2024. Reports to Vikram. Manages AWS infrastructure and alerts. | Reliability engineer tracking escalating cloud costs and system uptime. |
-| **VX013** | Siddharth Mehta | Product Marketing Mgr | Joined Apr 2025. On notice period with exit date 31-Oct-2026. | Product marketer executing planned departure noted in Q2 board update. |
-| **VX014** | Fatima Sheikh | Accounts & Payroll Exec | Joined May 2025. Reports to Meera. Manages ledger entries and payroll. Out on wedding leave in Feb 2026. | Finance specialist managing Zoho Books vouchers and payroll processing. |
-| **VX015** | Rohan Banerjee | Talent Partner | Joined Jun 2024. Remote from Kolkata; reports to Deepa. | Talent acquisition partner who coordinated with Cohere Recruiting Partners. |
-| **VX016** | Imran Siddiqui | Customer Support Lead | Joined Feb 2023. Direct report to CEO; manages Kavya Narayan. | Customer support lead handling client escalations and feedback. |
-| **VX017** | Lakshmi Pillai | HR & Office Executive | Joined Oct 2025. Reports to Deepa. Coordinates office administration at WeWork. | Supports workplace operations and onboarding logistics. |
-| **VX018** | Rahul Verma | Backend Engineer | Joined Feb 3, 2026. Reports to Vikram. Flagged overpayment on first payslip in March. | Conscientious junior backend engineer on routing engine microservices. |
-| **VX019** | Kavya Narayan | Support Associate | Joined Jul 2025. Reports to Imran. Handles daily customer tickets. | Resolves operational support queries for logistics dispatchers. |
+| **`ASM-001`** | ARR | Board-reported recurring ARR of Rs. 6.1 Cr reflects operational subscription run-rate; verbal executive statements of 42-45 Cr are uncorroborated conflicting claims. | Board updates provide concrete customer counts (66) and comparative growth without statutory audit notation. | If verbal figures represent booked GMV or contract values, financial scale is understated. |
+| **`ASM-002`** | Burn | Board-reported monthly burn of Rs. 44 L reflects total operational cash outflow without distinguishing gross vs net in absence of ledger receipts. | Primary source does not define gross vs net; ledger disbursements confirm salary alone is 31.75 L. | If 44 L is gross and net is lower, runway projection is compressed. |
+| **`ASM-003`** | Headcount | Keka HRMS export of 19 employees represents full-time workforce; contractors are unrecorded in HRMS. | Keka export header explicitly notes contractors are not in Keka. | If contractor pool is large, operational burn and true organization size are underestimated. |
+| **`ASM-004`** | Payroll | Rahul Verma February pay is a suspected partial-month calculation discrepancy requiring formal verification. | Rahul queried 26/28 days in 02.eml, acknowledged in 03.eml, but March had no adjustment. | If formal reconciliation was handled off-register or via tax vouchers, discrepancy is non-existent. |
+| **`ASM-005`** | Engineering | Atlas v3 is feature-complete but requires production reliability hardening before GA. | Q2 Board update confirms GA shifted for unplanned reliability work after August incidents. | If fundamental routing architecture is unstable, GA timeline may slip into 2027. |

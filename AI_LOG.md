@@ -114,3 +114,39 @@
   6. **Automated Test Results:**
      - Pytest suite: **49 passed in 1.73s** (`test_cockpit.py` [27/27] + `test_audit_api.py` [22/22]).
      - Production build: `npm run build` exited with code 0.
+
+---
+
+## Log Entry 8: Data-Driven Refactoring, Dynamic Risks & 14-Agent Cohort
+- **Timestamp:** 2026-11-16T13:40:00+05:30 to 2026-11-16T13:52:00+05:30
+- **Action:** Addressed SQLite audit findings by replacing hardcoded question-to-answer mappings with evidence-grounded queries, populating claims/assumptions/memories, implementing dynamic risk derivation, and establishing exactly 14 interviewable agents.
+- **Key Enhancements Implemented:**
+  1. **Task 1 (Data-Driven Claims):**
+     - Populated `claims` table in SQLite with 22 structured claims (`CLM-001` through `CLM-022`) referencing source files, evidence refs, temporal timestamps, confidence ratings, and conflict links (`CONF-001` to `CONF-004`).
+  2. **Task 2 (Evidence-Grounded Query Engine):**
+     - Refactored `answer_ceo_query` in `backend/app/services/query_engine.py` to retrieve `Claim` and `Evidence` dynamically from SQLite.
+     - Added strict evidence dependency: if supporting evidence records are missing or deleted from SQLite, the engine refuses the conclusion and returns `status="UNCERTAIN"`.
+  3. **Task 3 (Dynamic Risks):**
+     - Replaced hardcoded risk lists with `RISK_DEFINITIONS` and dynamic evidence evaluation in `get_ranked_risks`.
+     - A risk is only active if its supporting evidence records exist in SQLite. If evidence is deleted or withheld, the risk is automatically omitted from the active risks response.
+     - Active risks are ranked dynamically by an objective scoring algorithm (severity weight + urgency weight).
+  4. **Task 4 (14 Grounded Interviewable Agents):**
+     - Maintained all 19 people in `people` table while designating exactly 14 as interviewable (`is_interviewable=True`) based on documented operational criteria.
+     - Excluded notice-period employee (`VX013` Siddharth Mehta) and non-core roles (`VX015`, `VX016`, `VX017`, `VX019`).
+     - Populated `assumptions` table (`ASM-001` through `ASM-005`) and `agent_memories` table (42 records across grounded facts, role context, and personal life).
+     - Mandated disclaimer on persona context: `"(Note: Persona context is fictional background and does not constitute factual business evidence)"`.
+     - Isolated agent multi-turn conversation memory strictly by `emp_id`.
+  5. **Task 6 (Comprehensive Data-Driven Test Suite):**
+     - Created `backend/tests/test_data_driven.py` with 8 tests proving:
+       - Removing evidence removes dependent answers.
+       - Removing evidence removes unsupported risks.
+       - Conflicting claims remain visible.
+       - Exactly 14 agents are interviewable.
+       - Agent memory remains isolated by identity with persona disclaimer.
+       - Future release leakage prevented under historical `as_of`.
+       - Individual salary information cannot be retrieved.
+       - Unsupported questions are refused.
+  6. **Verification Results:**
+     - Pytest suite: **57 passed in 1.84s** across 3 test files (0 failed, 2 warnings).
+     - Frontend production build: `npm run build` compiled 4 static routes with 0 errors.
+     - SQLite row counts: `sources=12`, `people=19 [14 interviewable]`, `evidence=27`, `claims=22`, `conflicts=4`, `assumptions=5`, `agent_memories=42`, `audit_logs=0`.

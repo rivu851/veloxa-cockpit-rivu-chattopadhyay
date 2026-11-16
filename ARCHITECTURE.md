@@ -238,11 +238,14 @@ The ingestion engine (`backend/app/services/ingest.py`) is structured for idempo
 
 ---
 
-## 6. Ranked Evidence-Backed Risk Engine
+## 6. Dynamic Evidence-Derived Risk Engine
 
-The Cockpit ranks organizational risks based on source evidence:
+The Cockpit implements a fully dynamic risk engine driven by evidence availability in SQLite persistence:
+- **Dynamic Derivation:** A risk definition is only activated when all primary supporting evidence records are present in the database. Deleting or withholding supporting evidence dynamically deactivates and removes the risk from the active risks endpoint (`/api/risks`).
+- **Objective Scoring:** Active risks are scored and ranked deterministically using severity weighting, urgency, and business impact:
+  $$\text{Score} = \text{Severity Weight} + \text{Urgency Weight} + \text{Impact Weight} + \text{Confidence Bonus}$$
 
-| Rank | Risk ID | Category | Severity | Primary Evidence | Core Issue & Recommended Mitigation |
+| Rank | Risk ID | Category | Severity | Supporting Evidence | Core Issue & Mitigation |
 |---|---|---|---|---|---|
 | **1** | `RISK-001` | Engineering | **CRITICAL** | `E004`, `E008`, `E015`, `E026` | **Atlas v3 Launch Slippage & Reliability Hardening:** Launch slipped from Sep 15 commitment following an August reliability incident requiring emergency support from Patil Infra Services. Engine is feature-complete but undergoing hardening. *Mitigation: Audit reliability hardening before setting new launch dates.* |
 | **2** | `RISK-002` | Governance | **HIGH** | `E001`, `E003`, `E006`, `E007`, `E025`, `E027` | **Executive Financial Misalignment on ARR & Burn:** Board reports recurring ARR of Rs. 6.1 Cr and monthly burn of Rs. 44 L, conflicting with verbal statements (Rs. 42-45 Cr ARR and 2.2-2.5 L burn). *Mitigation: Reconcile internal metric definitions with board reports.* |
@@ -255,9 +258,10 @@ The Cockpit ranks organizational risks based on source evidence:
 ## 7. Deterministic Verification & One-Command Deployment
 
 ### Stack
-- **Backend:** Python 3.10+, FastAPI, SQLAlchemy, SQLite, Pydantic v2, Pytest (49/49 automated tests passing across core and audit suites).
+- **Backend:** Python 3.10+, FastAPI, SQLAlchemy, SQLite, Pydantic v2, Pytest (**57/57 automated tests passing** across core, audit, and data-driven suites).
 - **Frontend:** Next.js 14.2 (App Router), React 18, TypeScript, Tailwind CSS, Lucide React (Production build verified, interactive As-Of temporal selector).
-- **Source Adapters:** Extensible adapter architecture (`backend/app/services/adapters/`) providing unified contracts (`BaseSourceAdapter`, `TextManifestAdapter`, `TranscriptAdapter`, `BoardUpdateAdapter`, `EmailAdapter`, `SpreadsheetAdapter`) for parsing future day releases.
+- **Database Inventory (veloxa.db):** 8 tables fully populated (`sources=12`, `people=19 [14 interviewable]`, `evidence=27`, `claims=22`, `conflicts=4`, `assumptions=5`, `agent_memories=42`, `audit_logs=0`).
+- **Source Adapters:** Extensible adapter architecture (`backend/app/services/adapters/`) providing unified contracts (`BaseSourceAdapter`, `TextManifestAdapter`, `TranscriptAdapter`, `BoardUpdateAdapter`, `EmailAdapter`, `SpreadsheetAdapter`).
 - **Fresh-Clone Guarantee:** Public repository contains normalized privacy-safe seed data. Evaluators can clone and run without requiring external private binary spreadsheets or API keys.
 - **LLM Mode:** Deterministic No-Key engine is default. Zero external API keys required to execute the test suite or run the application.
 

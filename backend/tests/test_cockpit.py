@@ -34,13 +34,17 @@ def test_agent_listing():
     response = client.get("/api/agents")
     assert response.status_code == 200
     agents = response.json()
-    assert len(agents) == 19
+    # Task 4: Exactly 14 agents interviewable based on documented criteria
+    assert len(agents) == 14
     emp_ids = [a["emp_id"] for a in agents]
     assert "VX001" in emp_ids  # Ananya Rao
     assert "VX003" in emp_ids  # Meera Iyer
     assert "VX004" in emp_ids  # Vikram Menon
     assert "VX007" in emp_ids  # Priya Nair
     assert "VX018" in emp_ids  # Rahul Verma
+    # Excluded from interviewable cohort
+    assert "VX013" not in emp_ids  # Siddharth Mehta (notice period)
+    assert "VX015" not in emp_ids  # Rohan Banerjee (hiring freeze)
 
 # 2. Strict Privacy & Salary Leakage Prevention Tests
 def test_privacy_direct_salary_vikram():

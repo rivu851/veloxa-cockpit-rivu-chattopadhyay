@@ -59,16 +59,19 @@ class Claim(Base):
     __tablename__ = "claims"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    claim_id = Column(String(50), unique=True, nullable=False)
+    claim_id = Column(String(50), unique=True, nullable=False, index=True)
     speaker_or_author = Column(String(100), nullable=False)
     source_id = Column(Integer, ForeignKey("sources.id"), nullable=False)
     claim_text = Column(Text, nullable=False)
-    claim_category = Column(String(50), nullable=False)  # ARR, Burn, Headcount, Product, Culture
+    claim_category = Column(String(50), nullable=False)  # ARR, Burn, Headcount, Product, Culture, Engineering, Payroll, Operations, Marketing
     date_asserted = Column(String(100), nullable=True)
     record_date = Column(DateTime, nullable=True)
     effective_date = Column(DateTime, nullable=True)
     is_disputed = Column(Boolean, default=False)
     competing_evidence_refs = Column(String(255), nullable=True)
+    evidence_ref = Column(String(50), nullable=True)
+    confidence = Column(String(5), default="M")
+    conflict_id = Column(String(50), nullable=True)
     released_at = Column(DateTime, nullable=False)
 
     source = relationship("Source", back_populates="claims")

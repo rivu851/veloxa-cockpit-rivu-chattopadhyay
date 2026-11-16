@@ -52,7 +52,7 @@ Four consequential source discrepancies were uncovered in the Day 1 data room an
 - **Backend:** FastAPI (Python 3.10+), SQLAlchemy 2.0 ORM, SQLite relational persistence, Pydantic v2 schemas.
 - **Frontend:** Next.js 14.2 (App Router), TypeScript, Tailwind CSS, Lucide React icons, interactive As-Of temporal selector.
 - **Source Adapters:** Extensible adapter architecture (`backend/app/services/adapters/`) with unified parsing contracts.
-- **Testing:** Pytest 9.2 (**49 automated tests passing**, including 11 refusal/uncertainty tests, 10 privacy tests, and temporal as-of filters).
+- **Testing:** Pytest 9.2 (**57 automated tests passing**, including evidence-removal dependency tests, dynamic risk tests, agent memory isolation, refusal/uncertainty tests, and temporal as-of filters).
 - **Execution Mode:** Deterministic No-Key engine is default. Zero external API keys required to run full test suite and cockpit interface.
 
 ---
@@ -68,7 +68,7 @@ Four consequential source discrepancies were uncovered in the Day 1 data room an
   ```bash
   ./run_all.sh
   ```
-The script automatically copies `.env.example` to `.env` if needed, installs backend dependencies in a virtual environment, executes all 49 pytest tests, installs frontend npm dependencies, and boots both FastAPI (port 8000) and Next.js (port 3000).
+The script automatically copies `.env.example` to `.env` if needed, installs backend dependencies in a virtual environment, executes all 57 pytest tests, installs frontend npm dependencies, and boots both FastAPI (port 8000) and Next.js (port 3000).
 
 ### Manual Step-by-Step Instructions
 
@@ -78,7 +78,7 @@ The script automatically copies `.env.example` to `.env` if needed, installs bac
 python -m venv .venv
 .\.venv\Scripts\pip install -r backend/requirements.txt
 
-# Run all 49 automated tests:
+# Run all 57 automated tests:
 .\.venv\Scripts\python -m pytest backend/tests -v
 
 # Start FastAPI server on port 8000:
@@ -103,12 +103,13 @@ Visit the executive dashboard at **[http://localhost:3000](http://localhost:3000
 ============================= test session starts =============================
 platform win32 -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0
 rootdir: C:\Users\Rivu Chattopadhyay\Desktop\Hiya\veloxa-cockpit-rivu-chattopadhyay
-collected 49 items
+collected 57 items
 
-backend\tests\test_audit_api.py ......................                   [ 44%]
-backend\tests\test_cockpit.py ...........................                [100%]
+backend\tests\test_audit_api.py ......................                   [ 38%]
+backend\tests\test_cockpit.py ...........................                [ 85%]
+backend\tests\test_data_driven.py ........                               [100%]
 
-======================= 49 passed, 2 warnings in 1.73s ========================
+======================= 57 passed, 2 warnings in 1.84s ========================
 ```
 
 backend/tests/test_cockpit.py::test_health_check PASSED                  [  4%]

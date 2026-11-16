@@ -318,12 +318,12 @@ def ingest_day1_conflicts(db: Session):
         },
         {
             "conflict_id": "CONF-004",
-            "topic": "Rahul Verma Feb 2026 Payroll Calculation Defect",
-            "description": "Rahul Verma joined 2026-02-03 (26 of 28 payable days). Feb payroll credited full 28 days by Karthik Subramanian while Fatima was away. Rahul flagged to Fatima in 02.eml; Fatima promised to check in 03.eml; March payroll still paid full month with zero adjustment.",
+            "topic": "Suspected February Payroll Discrepancy Requiring Verification",
+            "description": "Rahul Verma joined 2026-02-03 (26 of 28 payable days in February). Feb payroll register records Days Payable: 28 and Gross: Rs. 1,10,000 processed by Karthik Subramanian while Fatima was away for her wedding (01.eml). Rahul queried this in 02.eml, and Fatima acknowledged in 03.eml ('Will check and get back'). March payroll records list 31 payable days with Gross: Rs. 1,10,000 and zero deduction. The evidence establishes a potential partial-month payment issue and employee query, not a conclusively confirmed payroll defect, requiring further verification in official Keka reconciliation records.",
             "competing_sources": "01.eml (E017), 02.eml (E018), 03.eml (E019), Payroll_Register_Jan-Mar_2026.xlsx (E023, E024), Employee_Master.xlsx (E022)",
-            "proposed_interpretation": "Acknowledge the procedural defect: un-prorated February pay for Rahul Verma remained unadjusted in March. Individual compensation amounts remain redacted from executive answers.",
-            "confidence": "H",
-            "what_would_change": "Subsequent payroll reconciliation vouchers in Keka payroll module.",
+            "proposed_interpretation": "Reclassified as a suspected February payroll discrepancy requiring verification. The available evidence establishes a potential partial-month payment issue and an employee query, but does not conclusively prove a finalized defect. Further verification from formal Keka payroll reconciliation records is required. Individual compensation figures remain strictly confidential.",
+            "confidence": "M",
+            "what_would_change": "Formal Keka payroll module migration audit, reconciliation vouchers, or year-end Form 16 / tax filings.",
             "impact_level": "MEDIUM",
             "human_status": "UNRESOLVED",
         }
@@ -345,7 +345,13 @@ def ingest_day1_conflicts(db: Session):
             )
             db.add(con)
         else:
+            existing.topic = c["topic"]
+            existing.description = c["description"]
+            existing.competing_sources = c["competing_sources"]
             existing.proposed_interpretation = c["proposed_interpretation"]
+            existing.confidence = c["confidence"]
+            existing.what_would_change = c["what_would_change"]
+            existing.impact_level = c["impact_level"]
             existing.human_status = c["human_status"]
 
 def seed_day1_data(db: Session):

@@ -73,6 +73,7 @@ interface ConflictItem {
 
 export default function CockpitDashboard() {
   const [query, setQuery] = useState('');
+  const [asOf, setAsOf] = useState('Day1_2026-11-16T10:00:00+05:30');
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState<AskResponse | null>(null);
   const [risks, setRisks] = useState<RiskItem[]>([]);
@@ -138,7 +139,7 @@ export default function CockpitDashboard() {
       const res = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q, as_of: 'Day1_2026-11-16T10:00:00+05:30' }),
+        body: JSON.stringify({ query: q, as_of: asOf }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -162,7 +163,7 @@ export default function CockpitDashboard() {
       const res = await fetch(`/api/agents/${selectedAgent.emp_id}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg }),
+        body: JSON.stringify({ message: msg, as_of: asOf }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -200,7 +201,21 @@ export default function CockpitDashboard() {
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2 text-xs bg-slate-800/80 px-3 py-1.5 rounded-md border border-slate-700 text-slate-300">
             <Clock className="w-3.5 h-3.5 text-blue-400" />
-            <span>As-Of: <strong className="text-white">Mon 16 Nov 2026 10:00 IST</strong></span>
+            <label htmlFor="as-of-select" className="text-slate-400">As-Of:</label>
+            <select
+              id="as-of-select"
+              value={asOf}
+              onChange={(e) => {
+                setAsOf(e.target.value);
+                setAnswer(null);
+              }}
+              className="bg-slate-900 text-white font-medium text-xs rounded px-2 py-0.5 border border-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            >
+              <option value="Day1_2026-11-16T10:00:00+05:30">Day 1 Cutoff (16 Nov 2026 10:00 IST)</option>
+              <option value="2026-08-01">Pre-Q2 Historical (01 Aug 2026)</option>
+              <option value="2026-04-15">Q1 Historical (15 Apr 2026)</option>
+              <option value="2026-11-20">Future Date (20 Nov 2026 - Demo Refusal)</option>
+            </select>
           </div>
           <div className="flex items-center space-x-1.5 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-md">
             <Shield className="w-3.5 h-3.5" />

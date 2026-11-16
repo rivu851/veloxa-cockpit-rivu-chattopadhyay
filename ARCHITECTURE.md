@@ -248,18 +248,20 @@ The Cockpit ranks organizational risks based on source evidence:
 | **2** | `RISK-002` | Governance | **HIGH** | `E001`, `E003`, `E006`, `E007`, `E025`, `E027` | **Executive Financial Misalignment on ARR & Burn:** Board reports recurring ARR of Rs. 6.1 Cr and monthly burn of Rs. 44 L, conflicting with verbal statements (Rs. 42-45 Cr ARR and 2.2-2.5 L burn). *Mitigation: Reconcile internal metric definitions with board reports.* |
 | **3** | `RISK-003` | Operational | **HIGH** | `E005`, `E009`, `E014` | **Hiring Freeze Impairing Backend Commitments:** Veloxa committed to adding 2 backend engineers to de-risk Atlas and paid Rs. 1.77 L advance to Cohere Recruiting, but froze hiring while closing the round. *Mitigation: Review recruiter terms and assess critical engineering de-risking.* |
 | **4** | `RISK-004` | Financial | **HIGH** | `E003`, `E007`, `E009` | **Runway Compression & Capital Dependency:** Runway decreased from 14 to 13 months at Rs. 44 L/month burn. Closing the investment round is urgent. *Mitigation: Model contingency expense scenarios if round slips.* |
-| **5** | `RISK-005` | Financial | **MEDIUM** | `E017`, `E018`, `E019`, `E023`, `E024` | **Payroll Controls Defect & Unreconciled Overpayment:** Absence of dual authorization during finance leave led to un-prorated February pay for Rahul Verma, acknowledged in writing but unadjusted in March. *Mitigation: Enforce payroll pro-ration controls and clear queries.* |
+| **5** | `RISK-005` | Financial | **MEDIUM** | `E017`, `E018`, `E019`, `E023`, `E024` | **Suspected February Payroll Discrepancy Requiring Verification:** Available records indicate a potential partial-month overpayment for Rahul Verma in February 2026 during finance leave. An employee query and acknowledgment are documented, but formal Keka reconciliation records remain pending. *Mitigation: Review outstanding queries against formal Keka payroll module records and verify pro-ration rules.* |
 
 ---
 
 ## 7. Deterministic Verification & One-Command Deployment
 
 ### Stack
-- **Backend:** Python 3.14+, FastAPI, SQLAlchemy, SQLite, Pydantic v2, Pytest (27/27 automated tests passing).
-- **Frontend:** Next.js 14.2 (App Router), React 18, TypeScript, Tailwind CSS, Lucide React (Production build verified).
+- **Backend:** Python 3.10+, FastAPI, SQLAlchemy, SQLite, Pydantic v2, Pytest (49/49 automated tests passing across core and audit suites).
+- **Frontend:** Next.js 14.2 (App Router), React 18, TypeScript, Tailwind CSS, Lucide React (Production build verified, interactive As-Of temporal selector).
+- **Source Adapters:** Extensible adapter architecture (`backend/app/services/adapters/`) providing unified contracts (`BaseSourceAdapter`, `TextManifestAdapter`, `TranscriptAdapter`, `BoardUpdateAdapter`, `EmailAdapter`, `SpreadsheetAdapter`) for parsing future day releases.
+- **Fresh-Clone Guarantee:** Public repository contains normalized privacy-safe seed data. Evaluators can clone and run without requiring external private binary spreadsheets or API keys.
 - **LLM Mode:** Deterministic No-Key engine is default. Zero external API keys required to execute the test suite or run the application.
 
 ### One-Command Launch
 - **Windows (PowerShell):** `.\run_all.ps1`
 - **Linux / macOS / WSL (Bash):** `./run_all.sh`
-Both scripts automatically verify/create virtual environments, install dependencies, run the automated test suite, and launch backend (port 8000) and frontend (port 3000).
+Both scripts automatically initialize `.env` from `.env.example`, verify/create virtual environments, install dependencies, run the automated test suite, and launch backend (port 8000) and frontend (port 3000).

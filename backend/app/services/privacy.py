@@ -2,11 +2,14 @@ import re
 from typing import Tuple
 
 DIRECT_SALARY_PATTERNS = [
-    r"\b(salary|salaries|compensation|pay|payslip|ctc|remuneration|gross|net)\b.*\b(of|for)\b.*\b([A-Za-z]+)\b",
-    r"\b(what|how much)\b.*\b(earn|make|paid|drawing|gets?)\b",
-    r"\b([A-Za-z]+('s)?)\s+(salary|pay|compensation|ctc|package|payslip|deductions?|take[- ]home)\b",
-    r"\bindividual\s+(salary|compensation|pay)\b",
+    r"\b(salary|salaries|compensation|pay|payslip|paycheck|pay cheque|ctc|remuneration|gross|net)\b.*\b(of|for)\b.*\b([A-Za-z]+)\b",
+    r"\b(what|how much)\b.*\b(earn|make|paid|drawing|gets?|paycheck|pay cheque)\b",
+    r"\b([A-Za-z]+('s)?)\s+(salary|pay|compensation|ctc|package|payslip|paycheck|pay cheque|deductions?|take[- ]home)\b",
+    r"\bindividual\s+(salary|compensation|pay|paycheck)\b",
     r"\b(who\s+(makes?|earns?|gets?))\b",
+    r"\b(paycheck|pay cheque)\b",
+    r"\b(what|how much)\b.*\b(earns?|makes?|paid|gets?)\b",
+    r"\bprocess(ed)?\b.*\b(salary|compensation|pay|ctc)\b",
 ]
 
 INDIRECT_INFERENCE_PATTERNS = [

@@ -26,10 +26,10 @@ The **Veloxa CXO Cockpit** is a full-stack executive intelligence platform built
 
 Four consequential source discrepancies were uncovered in the Day 1 data room and cataloged in [DECISIONS.md](DECISIONS.md):
 
-1. **CONF-001 (ARR Discrepancy):** Audited Board Update reports **Rs. 6.1 Crore recurring ARR** (Q2 Jul-Sep 2026), whereas CEO Ananya verbally asserted ARR is *"around forty-two crore, maybe forty-five now"* (T1), and CFO Meera cited *"forty-eight"* (T2).
-2. **CONF-002 (Monthly Burn Discrepancy):** Board decks report **Rs. 44 Lakhs monthly burn** (Q2), and Zoho Books confirms gross monthly payroll alone is Rs. 31.75 Lakhs + rent Rs. 2.36 L + cloud ~Rs. 2.5 L. In contrast, CFO Meera verbally claimed burn is *"two point two lakhs a month, sometimes two point five"* (T2).
-3. **CONF-003 (Headcount Scope):** Keka HRMS confirms **19 employees** (18 Active, 1 Notice period; contractors excluded), while CEO Ananya casually mentioned *"roughly eighteen people ('one-eighty, give or take')"*.
-4. **CONF-004 (Rahul Verma Payroll Calculation Error):** Rahul Verma joined on 2026-02-03 (26/28 payable days) but was credited for a full 28 days by Karthik Subramanian while Fatima was on wedding leave. Acknowledged by Fatima on 10 March, but March payroll was disbursed with zero adjustment.
+1. **CONF-001 (ARR Discrepancy):** Board Update reports **Rs. 6.1 Crore recurring ARR** (Q2 Jul-Sep 2026), whereas CEO Ananya verbally asserted ARR is *"around forty-two crore, maybe forty-five now"* (T1), and CFO Meera cited *"forty-eight"* (T2). These statements remain unresolved conflicting claims without primary evidence asserting GMV, valuation, or pipeline. The board update is not described as audited.
+2. **CONF-002 (Monthly Burn Discrepancy):** Board deck reports **Rs. 44 Lakhs monthly burn** (Q2, with 13 months runway), not labeled gross or net as the source does not define it. Zoho Books records monthly payroll disbursements of Rs. 31.75 Lakhs + rent Rs. 2.36 L + cloud ~Rs. 2.5 L. In contrast, CFO Meera claimed burn is *"two point two lakhs a month, sometimes two point five"* (T2). This statement is kept as an unresolved transcript claim; net burn is not inferred from ARR.
+3. **CONF-003 (Headcount Scope):** Keka HRMS and board decks record **19 employees** (18 Active, 1 Notice period; contractors excluded), while candidate brief describes 180 people and CEO Ananya remarked *"roughly eighteen people ('one-eighty, give or take')"*. Unresolved scope difference maintained without inventing unlisted contractors or assuming CEO meant 18 active employees.
+4. **CONF-004 (Suspected February Payroll Discrepancy):** Reclassified as a suspected February payroll discrepancy requiring verification. Rahul Verma joined on 2026-02-03 (26/28 payable days) with full month pay processed while Fatima was on leave. Rahul queried this and Fatima acknowledged, with March payroll paying a full month. Evidence establishes a potential partial-month payment issue and query, not a confirmed defect, requiring formal Keka reconciliation records. Individual compensation numbers remain strictly confidential.
 
 *All conflict resolutions remain marked `UNRESOLVED` in [DECISIONS.md](DECISIONS.md) pending human confirmation.*
 
@@ -49,20 +49,26 @@ Four consequential source discrepancies were uncovered in the Day 1 data room an
 
 ## 4. Technology Stack
 
-- **Backend:** FastAPI (Python 3.14+), SQLAlchemy 2.0 ORM, SQLite relational persistence, Pydantic v2 schemas.
-- **Frontend:** Next.js 14.2 (App Router), TypeScript, Tailwind CSS, Lucide React icons.
-- **Testing:** Pytest 9.2 (25 automated tests, including 6 refusal/uncertainty tests and 5 privacy tests).
+- **Backend:** FastAPI (Python 3.10+), SQLAlchemy 2.0 ORM, SQLite relational persistence, Pydantic v2 schemas.
+- **Frontend:** Next.js 14.2 (App Router), TypeScript, Tailwind CSS, Lucide React icons, interactive As-Of temporal selector.
+- **Source Adapters:** Extensible adapter architecture (`backend/app/services/adapters/`) with unified parsing contracts.
+- **Testing:** Pytest 9.2 (**49 automated tests passing**, including 11 refusal/uncertainty tests, 10 privacy tests, and temporal as-of filters).
 - **Execution Mode:** Deterministic No-Key engine is default. Zero external API keys required to run full test suite and cockpit interface.
 
 ---
 
 ## 5. Verified Single Fresh-Clone Setup & Run Command
 
-### Quick Start (Automated PowerShell Script)
-From the repository root:
-```powershell
-.\run_all.ps1
-```
+### Quick Start (Automated Script)
+- **Windows (PowerShell):**
+  ```powershell
+  .\run_all.ps1
+  ```
+- **Linux / macOS / WSL (Bash):**
+  ```bash
+  ./run_all.sh
+  ```
+The script automatically copies `.env.example` to `.env` if needed, installs backend dependencies in a virtual environment, executes all 49 pytest tests, installs frontend npm dependencies, and boots both FastAPI (port 8000) and Next.js (port 3000).
 
 ### Manual Step-by-Step Instructions
 
@@ -72,7 +78,7 @@ From the repository root:
 python -m venv .venv
 .\.venv\Scripts\pip install -r backend/requirements.txt
 
-# Run all 25 automated tests:
+# Run all 49 automated tests:
 .\.venv\Scripts\python -m pytest backend/tests -v
 
 # Start FastAPI server on port 8000:
@@ -97,7 +103,13 @@ Visit the executive dashboard at **[http://localhost:3000](http://localhost:3000
 ============================= test session starts =============================
 platform win32 -- Python 3.14.5, pytest-9.2.0, pluggy-1.7.0
 rootdir: C:\Users\Rivu Chattopadhyay\Desktop\Hiya\veloxa-cockpit-rivu-chattopadhyay
-collected 25 items
+collected 49 items
+
+backend\tests\test_audit_api.py ......................                   [ 44%]
+backend\tests\test_cockpit.py ...........................                [100%]
+
+======================= 49 passed, 2 warnings in 1.73s ========================
+```
 
 backend/tests/test_cockpit.py::test_health_check PASSED                  [  4%]
 backend/tests/test_cockpit.py::test_source_conflicts_endpoint PASSED     [  8%]

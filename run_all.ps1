@@ -8,6 +8,12 @@ Write-Host "==========================================================" -Foregro
 
 $RepoRoot = $PSScriptRoot
 
+# 0. Environment File Initialization
+if (-not (Test-Path "$RepoRoot\.env") -and (Test-Path "$RepoRoot\.env.example")) {
+    Write-Host "Initializing .env from .env.example..." -ForegroundColor Yellow
+    Copy-Item "$RepoRoot\.env.example" "$RepoRoot\.env"
+}
+
 # 1. Setup Backend
 Write-Host "`n[1/3] Preparing Python Backend..." -ForegroundColor Yellow
 Set-Location "$RepoRoot"

@@ -81,16 +81,20 @@
 
 ---
 
-## Conflict CONF-004: Rahul Verma Partial-Month February Payroll Defect
+## Conflict CONF-004: Suspected February Payroll Discrepancy Requiring Verification
 
 ### 1. Competing Sources
-- `Employee_Master.xlsx` (Row 21): Rahul Verma Join Date `2026-02-03`.
-- `01.eml` (28 Feb 2026): Karthik states he ran Feb payroll using the Jan sheet and added the new joiner because Fatima was out.
-- `Payroll_Register_Jan-Mar_2026.xlsx` (Rows 39 & 58): Rahul Verma was credited for 28 payable days in February (full month gross). March payroll credited 31 payable days with zero clawback or adjustment.
-- `02.eml` & `03.eml` (6 & 10 Mar 2026): Rahul queried the high payslip for a partial month; Fatima promised to check and get back.
+- `Employee_Master.xlsx` (Row 21): Rahul Verma Join Date `2026-02-03` (26 of 28 payable days in February).
+- `01.eml` (28 Feb 2026): Karthik states he ran February payroll using the January template and added the new joiner while Fatima was on leave for her wedding.
+- `Payroll_Register_Jan-Mar_2026.xlsx` (Rows 39 & 58): Rahul Verma's entry lists 28 payable days in February with full gross pay processed by KS. March payroll records list 31 payable days with zero clawback or adjustment noted.
+- `02.eml` (6 Mar 2026): Rahul emailed Fatima asking if his February pay should have been calculated for 26 days instead of 28.
+- `03.eml` (10 Mar 2026): Fatima acknowledged the query ("Will check and get back").
 
-### 2. Human Conflict Decision
-- **Finding:** Procedural defect in payroll processing confirmed across email and payroll sheets.
-- **Privacy Constraint:** Individual salary numbers are strictly confidential and must never be exposed to executive queries. The cockpit reports the audit defect (lack of pro-ration and absence of dual authorization) while redacting monetary figures.
-- **Confidence:** **HIGH**
-- **Human Decision Status:** **`UNRESOLVED`** (Pending reconciliation in Keka payroll module).
+### 2. Human Conflict Decision (Reclassification & Audit)
+- **Classification:** Reclassified as a **suspected February payroll discrepancy requiring verification**.
+- **Assessment of Uncertainty:** The available records establish a potential partial-month payment issue and an employee query, not a conclusively confirmed payroll defect. The documentation shows an inquiry acknowledged by payroll, but formal adjustments or reconciliations may exist outside the workbook.
+- **Privacy Constraint:** Individual compensation amounts are strictly confidential and redacted at the service layer (`[REDACTED_CONFIDENTIAL]`). Executive queries report the governance and control aspect without exposing individual salary figures.
+- **Impact on Cockpit Logic:** Executive queries regarding payroll discrepancy report the suspected pro-ration issue under verification, cite E017, E018, E019, E023, E024, and redact monetary amounts.
+- **Confidence:** **MEDIUM**
+- **What Would Change Conclusion:** Formal Keka payroll reconciliation vouchers, year-end Form 16 / tax audit filings, or signed payroll audit report.
+- **Human Decision Status:** **`UNRESOLVED`** (Formal conflict remains documented and open).

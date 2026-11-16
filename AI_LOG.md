@@ -76,3 +76,41 @@
     ```text
     ======================= 27 passed, 6 warnings in 1.72s ========================
     ```
+
+---
+
+## Log Entry 7: End-to-End System Audit, Adapters & CONF-004 Reclassification
+- **Timestamp:** 2026-11-16T13:10:00+05:30 to 2026-11-16T13:25:00+05:30
+- **Action:** Comprehensive end-to-end verification, data ingestion audit, API-level privacy/temporal safety tests, and CONF-004 reclassification.
+- **Key Findings & Implemented Changes:**
+  1. **Phase 1 (Application Verification):**
+     - Probed live FastAPI backend using `backend/probe_live.py`: `/docs` (HTTP 200), `/openapi.json` (HTTP 200, 7 endpoints), `/health` (HTTP 200).
+     - Verified exact query responses for ARR (Rs. 6.1 Cr, E006, E001, E025, E027), Burn (Rs. 44 L, E007, E003, E011-E013, E027, E026), Headcount (19 employees, E020, E006, E002, E021, E025), Atlas Delay (missed Sep 15 GA, Patil Infra on-call support for difficult August), and 5 Ranked Risks.
+     - Frontend connection verified via Next.js proxy rewrites (`/api/:path*` -> `http://127.0.0.1:8000/api/:path*`).
+     - Added an interactive As-Of dropdown selector in the frontend header (`frontend/src/app/page.tsx`) allowing interactive temporal queries (`Day 1 Cutoff`, `2026-08-01 Pre-Q2`, `2026-04-15 Q1`, `2026-11-20 Future Demo Refusal`).
+  2. **Phase 2 (Payroll Reclassification):**
+     - Reclassified `CONF-004` from "defect" to **"Suspected February Payroll Discrepancy Requiring Verification"**.
+     - Documented uncertainty: available records show a potential partial-month issue and employee query, not a finalized defect. Final verification requires formal Keka reconciliation records.
+     - Preserved original evidence (E017-E019, E023-E024) while strictly redacting monetary compensation figures at the service layer.
+  3. **Phase 3 (Ingestion Mechanism Audit & Source Adapters):**
+     - Audited `backend/app/services/ingest.py`. Verified that the ingestion loads deterministic, normalized seed data extracted directly from the Day 1 text room with exact row/column references, rather than dynamically reading binary files at runtime.
+     - Implemented extensible adapter architecture in `backend/app/services/adapters/`:
+       - `BaseSourceAdapter` (abstract base contract).
+       - Concrete adapters: `TextManifestAdapter`, `TranscriptAdapter`, `BoardUpdateAdapter`, `EmailAdapter`, `SpreadsheetAdapter`.
+     - Fresh-clone safety confirmed: confidential raw spreadsheets are kept out of public Git while normalized seed fixtures allow reproducible, zero-external-dependency fresh clone builds.
+  4. **Phase 4 (API-Level Privacy & Temporal Safety Suite):**
+     - Created `backend/tests/test_audit_api.py` with 22 dedicated integration tests:
+       - Direct salary query refusal across multiple employees.
+       - Indirect compensation inference prevention ("highest paid", "average CTC", "ranking").
+       - Evidence endpoint dynamic masking (`/api/evidence/E023` and `E024`).
+       - Agent interview privacy enforcement across 4 separate personas.
+       - Temporal As-Of filtering (querying with `as_of="2026-08-01"` hides Q2 ARR and returns Q1 ARR of Rs. 5.8 Cr).
+       - Future date boundary refusal (`as_of="2026-11-20"` triggers temporal REFUSAL).
+       - Unresolved status verification for all 4 conflicts and CONF-004 reclassification check.
+       - Honest uncertainty for out-of-scope questions (Atlas v4, future dates).
+  5. **Phase 5 (Fresh-Clone Verification):**
+     - Updated `run_all.ps1` and `run_all.sh` to automatically copy `.env.example` to `.env` if `.env` is absent.
+     - Verified frontend production build with `npm run build` (compiled successfully, 0 errors, static pages generated).
+  6. **Automated Test Results:**
+     - Pytest suite: **49 passed in 1.73s** (`test_cockpit.py` [27/27] + `test_audit_api.py` [22/22]).
+     - Production build: `npm run build` exited with code 0.

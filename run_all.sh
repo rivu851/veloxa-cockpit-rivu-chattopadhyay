@@ -6,6 +6,12 @@ set -e
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "=== Veloxa CXO Cockpit: Local Launch ==="
 
+# 0. Environment File Initialization
+if [ ! -f "$REPO_ROOT/.env" ] && [ -f "$REPO_ROOT/.env.example" ]; then
+    echo "Initializing .env from .env.example..."
+    cp "$REPO_ROOT/.env.example" "$REPO_ROOT/.env"
+fi
+
 # 1. Backend setup
 cd "$REPO_ROOT"
 if [ ! -d ".venv" ]; then

@@ -29,10 +29,6 @@ def setup_db():
 # 1. Removing Evidence Removes Dependent Answers
 def test_removing_evidence_removes_dependent_answers():
     db = SessionLocal()
-    # Temporarily remove ARR evidence records (E001, E006)
-    arr_ev = db.query(Evidence).filter(Evidence.ref.in_(["E001", "E006"])).all()
-    saved_data = [(e.ref, e.source_id, e.sheet_or_page, e.row_or_line, e.fact_text, e.confidence, e.released_at) for e in arr_ev]
-    
     try:
         db.query(Evidence).filter(Evidence.ref.in_(["E001", "E006"])).delete()
         db.commit()
@@ -45,19 +41,13 @@ def test_removing_evidence_removes_dependent_answers():
         assert "Insufficient source evidence" in data["answer"]
         assert "unavailable" in data["answer"].lower() or "missing" in data["answer"].lower()
     finally:
-        # Restore evidence records
-        for ref, s_id, sheet, row, fact, conf, rel in saved_data:
-            db.add(Evidence(ref=ref, source_id=s_id, sheet_or_page=sheet, row_or_line=row, fact_text=fact, confidence=conf, released_at=rel))
-        db.commit()
+        # Restore full evidence records cleanly via seed
+        seed_day1_data(db)
         db.close()
 
 # 2. Removing Evidence Removes Unsupported Risks
 def test_removing_evidence_removes_unsupported_risks():
     db = SessionLocal()
-    # Temporarily remove Atlas evidence records (E004, E008, E015)
-    atlas_ev = db.query(Evidence).filter(Evidence.ref.in_(["E004", "E008", "E015"])).all()
-    saved_atlas = [(e.ref, e.source_id, e.sheet_or_page, e.row_or_line, e.fact_text, e.confidence, e.released_at) for e in atlas_ev]
-    
     try:
         db.query(Evidence).filter(Evidence.ref.in_(["E004", "E008", "E015"])).delete()
         db.commit()
@@ -70,9 +60,9 @@ def test_removing_evidence_removes_unsupported_risks():
         # RISK-001 (Atlas slippage) MUST be omitted dynamically because supporting evidence is absent!
         assert "RISK-001" not in risk_ids
     finally:
-        # Restore evidence records
-        for ref, s_id, sheet, row, fact, conf, rel in saved_atlas:
-            db.add(Evidence(ref=ref, source_id=s_id, sheet_or_page=sheet, row_or_line=row, fact_text=fact, confidence=conf, released_at=rel))
+        # Restore full evidence records cleanly via seed
+        seed_day1_data(db)
+        db.close()
         db.commit()
         db.close()
 

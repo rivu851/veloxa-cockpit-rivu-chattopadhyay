@@ -6,10 +6,11 @@ from backend.app.db.session import get_db
 from backend.app.models.schema import Evidence, Person, Conflict, Source
 from backend.app.schemas.pydantic_models import (
     AskRequest, AskResponse, RiskListResponse, AgentSummary,
-    AgentChatRequest, AgentChatResponse, EvidenceResponse, ConflictResponse
+    AgentChatRequest, AgentChatResponse, EvidenceResponse, ConflictResponse,
+    HRInsightsResponse
 )
 from backend.app.services.query_engine import (
-    answer_ceo_query, get_ranked_risks, chat_agent
+    answer_ceo_query, get_ranked_risks, chat_agent, get_hr_insights
 )
 from backend.app.services.privacy import redact_sensitive_fact
 
@@ -107,3 +108,11 @@ def list_conflicts(db: Session = Depends(get_db)):
         )
         for c in conflicts
     ]
+
+@router.get("/hr-insights", response_model=HRInsightsResponse)
+def get_insights(as_of: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    """
+    Returns authorized team-level Culture Amp engagement and Keka Hire requisition insights.
+    Maintains strict privacy: comments withheld for teams < 6, leave registers protected.
+    """
+    return get_hr_insights(db, as_of)

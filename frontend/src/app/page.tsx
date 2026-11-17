@@ -16,6 +16,13 @@ import {
   Shield,
   Layers,
   HelpCircle,
+  TrendingDown,
+  TrendingUp,
+  CheckCircle,
+  Lock,
+  Briefcase,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 interface Citation {
@@ -71,16 +78,48 @@ interface ConflictItem {
   human_status: string;
 }
 
+interface TeamEngagement {
+  team: string;
+  department: string;
+  team_size: number;
+  respondents: number;
+  prior_score: number;
+  latest_score: number;
+  change: number;
+  comments_status: string;
+}
+
+interface RequisitionItem {
+  req_id: string;
+  role: string;
+  team: string;
+  hiring_manager: string;
+  opened_date?: string;
+  status: string;
+  status_date?: string;
+  pipeline_count: number;
+  notes?: string;
+}
+
+interface HRInsightsResponse {
+  as_of: string;
+  team_engagement: TeamEngagement[];
+  requisitions: RequisitionItem[];
+  privacy_safeguards: string[];
+}
+
 export default function CockpitDashboard() {
   const [query, setQuery] = useState('');
-  const [asOf, setAsOf] = useState('Day1_2026-11-16T10:00:00+05:30');
+  const [asOf, setAsOf] = useState('Day2_2026-11-17T10:00:00+05:30');
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState<AskResponse | null>(null);
   const [risks, setRisks] = useState<RiskItem[]>([]);
   const [agents, setAgents] = useState<AgentSummary[]>([]);
   const [conflicts, setConflicts] = useState<ConflictItem[]>([]);
-  const [activeTab, setActiveTab] = useState<'risks' | 'agents' | 'conflicts' | 'transcripts'>('risks');
+  const [hrInsights, setHrInsights] = useState<HRInsightsResponse | null>(null);
+  const [activeTab, setActiveTab] = useState<'risks' | 'hr' | 'agents' | 'conflicts' | 'transcripts'>('risks');
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
+  const [showAllRisks, setShowAllRisks] = useState(false);
   
   // Agent chat state
   const [selectedAgent, setSelectedAgent] = useState<AgentSummary | null>(null);
@@ -93,11 +132,12 @@ export default function CockpitDashboard() {
     fetchRisks();
     fetchAgents();
     fetchConflicts();
-  }, []);
+    fetchHRInsights();
+  }, [asOf]);
 
   const fetchRisks = async () => {
     try {
-      const res = await fetch('/api/risks');
+      const res = await fetch(`/api/risks?as_of=${encodeURIComponent(asOf)}`);
       if (res.ok) {
         const data = await res.json();
         setRisks(data.risks || []);
@@ -125,6 +165,18 @@ export default function CockpitDashboard() {
       if (res.ok) {
         const data = await res.json();
         setConflicts(data || []);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const fetchHRInsights = async () => {
+    try {
+      const res = await fetch(`/api/hr-insights?as_of=${encodeURIComponent(asOf)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHrInsights(data);
       }
     } catch (e) {
       console.error(e);
@@ -179,6 +231,8 @@ export default function CockpitDashboard() {
     }
   };
 
+  const topThreeRisks = risks.slice(0, 3);
+
   return (
     <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col">
       {/* Top Header */}
@@ -190,8 +244,8 @@ export default function CockpitDashboard() {
           <div>
             <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
               VELOXA CXO COCKPIT
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">
-                Day 1 Active
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                Day 2 Active (17 Nov 2026)
               </span>
             </h1>
             <p className="text-xs text-slate-400">Grounded Multi-Source Executive Intelligence & Governance</p>
@@ -211,21 +265,106 @@ export default function CockpitDashboard() {
               }}
               className="bg-slate-900 text-white font-medium text-xs rounded px-2 py-0.5 border border-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
             >
+              <option value="Day2_2026-11-17T10:00:00+05:30">Day 2 Active (17 Nov 2026 10:00 IST)</option>
+              <option value="2026-11-17T09:59:59+05:30">Pre-Day 2 Cutoff (09:59:59 - Demo Refusal)</option>
               <option value="Day1_2026-11-16T10:00:00+05:30">Day 1 Cutoff (16 Nov 2026 10:00 IST)</option>
               <option value="2026-08-01">Pre-Q2 Historical (01 Aug 2026)</option>
-              <option value="2026-04-15">Q1 Historical (15 Apr 2026)</option>
               <option value="2026-11-20">Future Date (20 Nov 2026 - Demo Refusal)</option>
             </select>
           </div>
           <div className="flex items-center space-x-1.5 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-md">
             <Shield className="w-3.5 h-3.5" />
-            <span>Salary Privacy Active</span>
+            <span>Salary & Survey Privacy Active</span>
           </div>
         </div>
       </header>
 
       {/* Main Content Layout */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8 space-y-8">
+        
+        {/* T6a EXECUTIVE MORNING BRIEFING: TOP 3 RISKS ("What to worry about") */}
+        <section className="bg-slate-900/80 border border-blue-500/40 rounded-xl p-6 shadow-xl backdrop-blur relative overflow-hidden">
+          <div className="absolute top-0 right-0 bg-blue-500/10 border-l border-b border-blue-500/30 px-3 py-1 text-[11px] text-blue-300 rounded-bl-lg font-mono">
+            T6a View • Decision: PROPOSED ACCEPT WITH SCOPE (Awaiting Candidate Approval)
+          </div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-red-400" />
+                <h2 className="text-base font-bold text-white tracking-tight">
+                  CEO Morning Briefing — Top 3 Risks ("What to worry about")
+                </h2>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Default zero-click executive risk assessment answering CEO voice note T6a. Backed strictly by SQLite evidence.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setActiveTab('risks');
+                setShowAllRisks(!showAllRisks);
+              }}
+              className="text-xs bg-slate-800 hover:bg-slate-700 text-blue-300 border border-slate-700 px-3 py-1.5 rounded flex items-center gap-1.5 transition"
+            >
+              <span>{showAllRisks ? 'Collapse List' : `View All (${risks.length}) Risks`}</span>
+              {showAllRisks ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {topThreeRisks.map((r) => (
+              <div
+                key={r.risk_id}
+                className="bg-slate-950/70 border border-slate-800 rounded-lg p-4 flex flex-col justify-between hover:border-blue-500/50 transition shadow-md"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-600/20 text-blue-400 font-bold text-xs flex items-center justify-center border border-blue-500/30">
+                      #{r.rank}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                        r.severity === 'CRITICAL'
+                          ? 'bg-red-500/20 text-red-300 border border-red-500/40'
+                          : r.severity === 'HIGH'
+                          ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40'
+                          : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40'
+                      }`}
+                    >
+                      {r.severity}
+                    </span>
+                  </div>
+
+                  <h3 className="text-sm font-semibold text-white leading-snug mb-1">
+                    {r.title}
+                  </h3>
+                  <div className="text-[11px] text-blue-400 mb-2 font-medium">Category: {r.category}</div>
+
+                  <p className="text-xs text-slate-300 leading-relaxed mb-3">
+                    {r.summary}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-800 space-y-2">
+                  <div className="text-[11px] text-emerald-300 bg-emerald-950/30 p-2 rounded border border-emerald-500/20">
+                    <strong>Recommended Action:</strong> {r.recommended_mitigation}
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                    <span>Evidence ({r.evidence_refs.length}):</span>
+                    <div className="flex gap-1">
+                      {r.evidence_refs.slice(0, 3).map((ref) => (
+                        <span key={ref} className="bg-slate-800 text-blue-300 px-1.5 py-0.5 rounded text-[10px] border border-slate-700">
+                          {ref}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* CEO Ask Section */}
         <section className="bg-slate-900/60 border border-slate-800 rounded-xl p-6 shadow-xl backdrop-blur">
           <div className="flex items-center justify-between mb-3">
@@ -241,7 +380,7 @@ export default function CockpitDashboard() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAsk()}
-              placeholder="Ask any executive question (e.g. 'What is our ARR?', 'What is our monthly burn?', 'Is Atlas v3 on track?')"
+              placeholder="Ask any executive question (e.g. 'What is our engineering pulse score?', 'Which requisitions are paused?')"
               className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
@@ -257,12 +396,14 @@ export default function CockpitDashboard() {
           <div className="flex flex-wrap gap-2 mt-3 pt-2">
             <span className="text-xs text-slate-400 self-center">Quick queries:</span>
             {[
+              'What is our engineering engagement pulse score?',
+              'Which requisitions did Meera Iyer pause and has the funding round closed?',
+              'Can you show me the qualitative comments from the engineering pulse survey?',
+              'What is our company attrition rate based on Deepa\'s call?',
+              'Why did Priya Nair take personal leave in September and is she experiencing burnout?',
+              'Did Siddharth Mehta resign and has the product launch kit been handed over?',
               'What is our current ARR?',
               'What is our monthly burn rate and runway?',
-              'How many employees work at Veloxa?',
-              'Is Atlas version 3 on track?',
-              'What happened with the Logistics Summit?',
-              'What is Vikram Menon\'s salary?',
             ].map((p, i) => (
               <button
                 key={i}
@@ -348,7 +489,18 @@ export default function CockpitDashboard() {
               }`}
             >
               <ShieldAlert className="w-4 h-4" />
-              Ranked Risks ({risks.length})
+              Ranked Enterprise Risks ({risks.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('hr')}
+              className={`pb-3 font-medium flex items-center gap-2 border-b-2 transition ${
+                activeTab === 'hr'
+                  ? 'border-blue-500 text-blue-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              HR & People Insights (Culture Amp & Hiring)
             </button>
             <button
               onClick={() => setActiveTab('agents')}
@@ -358,7 +510,7 @@ export default function CockpitDashboard() {
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Users className="w-4 h-4" />
+              <Building2 className="w-4 h-4" />
               Employee Agents ({agents.length})
             </button>
             <button
@@ -436,7 +588,141 @@ export default function CockpitDashboard() {
             </div>
           )}
 
-          {/* TAB 2: EMPLOYEE AGENTS */}
+          {/* TAB 2: HR & PEOPLE INSIGHTS */}
+          {activeTab === 'hr' && (
+            <div className="space-y-6">
+              {/* Culture Amp Pulse Survey Section */}
+              <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div>
+                    <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                      Culture Amp Quarterly Pulse Survey (Jul - Sep 2026)
+                    </h3>
+                    <p className="text-xs text-slate-400">Quarter-over-quarter engagement trends across departments (Scale 1-5)</p>
+                  </div>
+                  <span className="text-xs bg-rose-500/10 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full flex items-center gap-1.5">
+                    <Lock className="w-3 h-3" />
+                    Qualitative Comments Withheld (&lt; 6 members)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {hrInsights?.team_engagement.map((t) => (
+                    <div
+                      key={t.team}
+                      className={`p-4 rounded-lg border ${
+                        t.change <= -0.5
+                          ? 'bg-red-950/20 border-red-500/40'
+                          : t.change < 0
+                          ? 'bg-amber-950/20 border-amber-500/30'
+                          : 'bg-slate-950 border-slate-800'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold text-white text-sm">{t.team}</h4>
+                        <span
+                          className={`text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1 ${
+                            t.change < 0
+                              ? 'text-red-400 bg-red-500/10'
+                              : t.change > 0
+                              ? 'text-emerald-400 bg-emerald-500/10'
+                              : 'text-slate-400 bg-slate-800'
+                          }`}
+                        >
+                          {t.change < 0 ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
+                          {t.change > 0 ? `+${t.change}` : t.change}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex items-baseline gap-2">
+                        <span className="text-2xl font-bold text-white">{t.latest_score.toFixed(1)}</span>
+                        <span className="text-xs text-slate-400">from {t.prior_score.toFixed(1)} (Apr-Jun)</span>
+                      </div>
+
+                      <div className="mt-2 text-[11px] text-slate-400 flex items-center justify-between">
+                        <span>Participation: {t.respondents} / {t.team_size} responded</span>
+                        <span className="font-mono text-[10px] text-amber-400">{t.comments_status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Keka Hire Requisitions Section */}
+              <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <div>
+                    <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-blue-400" />
+                      Keka Hire Requisition Tracker (Export 31-Oct-2026)
+                    </h3>
+                    <p className="text-xs text-slate-400">Active, on-hold, and filled positions across departments</p>
+                  </div>
+                  <div className="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded">
+                    <strong>Hiring Pause Directive:</strong> Paused by Meera (06.eml) until round closes
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border border-slate-800">
+                    <thead className="bg-slate-950 text-slate-400 uppercase tracking-wider">
+                      <tr>
+                        <th className="p-3 border-b border-slate-800">Req ID</th>
+                        <th className="p-3 border-b border-slate-800">Role</th>
+                        <th className="p-3 border-b border-slate-800">Team</th>
+                        <th className="p-3 border-b border-slate-800">Status</th>
+                        <th className="p-3 border-b border-slate-800">Pipeline</th>
+                        <th className="p-3 border-b border-slate-800">Status Date</th>
+                        <th className="p-3 border-b border-slate-800">Governance Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800 text-slate-300">
+                      {hrInsights?.requisitions.map((req) => (
+                        <tr key={req.req_id} className="hover:bg-slate-800/40">
+                          <td className="p-3 font-mono text-blue-400 font-bold">{req.req_id}</td>
+                          <td className="p-3 font-medium text-white">{req.role}</td>
+                          <td className="p-3 text-slate-300">{req.team}</td>
+                          <td className="p-3">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                req.status === 'On hold'
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                  : req.status === 'Open'
+                                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
+                                  : req.status === 'Filled'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                                  : 'bg-slate-800 text-slate-400'
+                              }`}
+                            >
+                              {req.status}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono text-white font-bold">{req.pipeline_count}</td>
+                          <td className="p-3 text-slate-400">{req.status_date || req.opened_date || '—'}</td>
+                          <td className="p-3 text-slate-400 max-w-xs truncate">{req.notes || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Privacy Safeguards Banner */}
+              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 space-y-2">
+                <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
+                  <Shield className="w-3.5 h-3.5 text-blue-400" />
+                  Service-Layer Privacy & Confidentiality Safeguards Active
+                </h4>
+                <ul className="text-xs text-slate-400 space-y-1 list-disc list-inside">
+                  {hrInsights?.privacy_safeguards.map((s, idx) => (
+                    <li key={idx}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: EMPLOYEE AGENTS */}
           {activeTab === 'agents' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {agents.map((a) => (
@@ -477,7 +763,7 @@ export default function CockpitDashboard() {
             </div>
           )}
 
-          {/* TAB 3: SOURCE CONFLICTS */}
+          {/* TAB 4: SOURCE CONFLICTS */}
           {activeTab === 'conflicts' && (
             <div className="space-y-4">
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 text-xs text-amber-300">
@@ -519,13 +805,13 @@ export default function CockpitDashboard() {
             </div>
           )}
 
-          {/* TAB 4: TRANSCRIPTION NOTES */}
+          {/* TAB 5: TRANSCRIPTION NOTES */}
           {activeTab === 'transcripts' && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-6 space-y-4">
-              <h3 className="text-base font-semibold text-white">MeetNotes AI Audio Transcription Audit (Day 1)</h3>
+              <h3 className="text-base font-semibold text-white">MeetNotes AI Audio Transcription Audit (Day 1 & Day 2)</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                MeetNotes AI auto-summaries exhibit predictable speech-to-text acoustic artifacts.
-                All mishearings are treated as hypotheses backed by cross-system corroboration:
+                MeetNotes AI auto-summaries exhibit predictable speech-to-text acoustic artifacts and human verbal ambiguities.
+                All mishearings are treated as hypotheses backed by cross-system corroboration, preserving unresolved ambiguity:
               </p>
 
               <div className="overflow-x-auto">
@@ -540,6 +826,41 @@ export default function CockpitDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 text-slate-300">
+                    <tr>
+                      <td className="p-3 font-mono text-amber-400">"Cult Amp"</td>
+                      <td className="p-3">T1 & T3 (Deepa J.)</td>
+                      <td className="p-3 font-semibold text-white">Culture Amp</td>
+                      <td className="p-3">Pulse_Survey.xlsx export header</td>
+                      <td className="p-3 text-emerald-400 font-bold">HIGH</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-mono text-amber-400">"Liver"</td>
+                      <td className="p-3">T3 (Rohan B.)</td>
+                      <td className="p-3 font-semibold text-white">Keka Hire / Lever</td>
+                      <td className="p-3">Hiring_Tracker.xlsx header: "Keka Hire"</td>
+                      <td className="p-3 text-emerald-400 font-bold">HIGH</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-mono text-amber-400">"Kekka"</td>
+                      <td className="p-3">T3 (Rohan B.)</td>
+                      <td className="p-3 font-semibold text-white">Keka HRMS</td>
+                      <td className="p-3">HRMS master database</td>
+                      <td className="p-3 text-emerald-400 font-bold">HIGH</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-mono text-amber-400">"about twelve"</td>
+                      <td className="p-3">T3 (Deepa J.)</td>
+                      <td className="p-3 font-semibold text-white">Undefined Metric (12% vs 12 headcount)</td>
+                      <td className="p-3">Kept as UNRESOLVED conflict CONF-006</td>
+                      <td className="p-3 text-amber-400 font-bold">LOW</td>
+                    </tr>
+                    <tr>
+                      <td className="p-3 font-mono text-amber-400">"twenty-two open roles... lost six"</td>
+                      <td className="p-3">T3 (Rohan B.)</td>
+                      <td className="p-3 font-semibold text-white">Uncorroborated Hiring Metrics</td>
+                      <td className="p-3">Formal Hiring Tracker lists only 6 requisitions</td>
+                      <td className="p-3 text-amber-400 font-bold">LOW</td>
+                    </tr>
                     <tr>
                       <td className="p-3 font-mono text-amber-400">"Jeera board"</td>
                       <td className="p-3">T1 CEO Kickoff Call</td>
@@ -559,13 +880,6 @@ export default function CockpitDashboard() {
                       <td className="p-3">T2 CFO Call (Meera)</td>
                       <td className="p-3 font-semibold text-white">Keka HRMS</td>
                       <td className="p-3">Employee Master header: "Keka HRMS export"</td>
-                      <td className="p-3 text-emerald-400 font-bold">HIGH</td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-mono text-amber-400">"Cult Amp"</td>
-                      <td className="p-3">T1 CEO Kickoff Call</td>
-                      <td className="p-3 font-semibold text-white">Culture Amp</td>
-                      <td className="p-3">README manifest lists <code>hr/ Culture Amp pulse</code></td>
                       <td className="p-3 text-emerald-400 font-bold">HIGH</td>
                     </tr>
                     <tr>
@@ -653,7 +967,7 @@ export default function CockpitDashboard() {
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
             <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3 text-blue-300">
-              Agent initialized with role-grounded facts from Keka HRMS and Day 1 data. Boundary policies apply: salary figures are strictly redacted.
+              Agent initialized with role-grounded facts from Keka HRMS and Day 1 & Day 2 data. Boundary policies apply: salary figures and unapproved comments are strictly redacted.
             </div>
 
             {chatHistory.length === 0 && (

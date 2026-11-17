@@ -1,8 +1,8 @@
 # Veloxa CXO Cockpit — Architecture & System Design
-**Assessment Phase:** Individual Hackathon (Day 1 Release — Mon 16 Nov 2026 10:00 IST)  
+**Assessment Phase:** Individual Hackathon (Day 2 Release — Tue 17 Nov 2026 10:00 IST)  
 **Author / Candidate:** Rivu Chattopadhyay  
 **Repository:** https://github.com/rivu851/veloxa-cockpit-rivu-chattopadhyay  
-**Submission Milestone:** Monday 16 Nov 2026 by 23:59 IST  
+**Submission Milestone:** Tuesday 17 Nov 2026 by 23:59 IST (Day 2 Integration & T6a Response)  
 
 ---
 
@@ -238,30 +238,33 @@ The ingestion engine (`backend/app/services/ingest.py`) is structured for idempo
 
 ---
 
-## 6. Dynamic Evidence-Derived Risk Engine
+## 6. Dynamic Evidence-Derived Risk Engine & T6a Morning Briefing
 
 The Cockpit implements a fully dynamic risk engine driven by evidence availability in SQLite persistence:
 - **Dynamic Derivation:** A risk definition is only activated when all primary supporting evidence records are present in the database. Deleting or withholding supporting evidence dynamically deactivates and removes the risk from the active risks endpoint (`/api/risks`).
 - **Objective Scoring:** Active risks are scored and ranked deterministically using severity weighting, urgency, and business impact:
   $$\text{Score} = \text{Severity Weight} + \text{Urgency Weight} + \text{Impact Weight} + \text{Confidence Bonus}$$
+- **T6a Default Morning Briefing:** Implements default top-three ranked risk cards on dashboard opening answering CEO voice note T6a ("tell me what to worry about. Top three"), while preserving an expandable view of all 7 enterprise risks.
 
 | Rank | Risk ID | Category | Severity | Supporting Evidence | Core Issue & Mitigation |
 |---|---|---|---|---|---|
 | **1** | `RISK-001` | Engineering | **CRITICAL** | `E004`, `E008`, `E015`, `E026` | **Atlas v3 Launch Slippage & Reliability Hardening:** Launch slipped from Sep 15 commitment following an August reliability incident requiring emergency support from Patil Infra Services. Engine is feature-complete but undergoing hardening. *Mitigation: Audit reliability hardening before setting new launch dates.* |
-| **2** | `RISK-002` | Governance | **HIGH** | `E001`, `E003`, `E006`, `E007`, `E025`, `E027` | **Executive Financial Misalignment on ARR & Burn:** Board reports recurring ARR of Rs. 6.1 Cr and monthly burn of Rs. 44 L, conflicting with verbal statements (Rs. 42-45 Cr ARR and 2.2-2.5 L burn). *Mitigation: Reconcile internal metric definitions with board reports.* |
-| **3** | `RISK-003` | Operational | **HIGH** | `E005`, `E009`, `E014` | **Hiring Freeze Impairing Backend Commitments:** Veloxa committed to adding 2 backend engineers to de-risk Atlas and paid Rs. 1.77 L advance to Cohere Recruiting, but froze hiring while closing the round. *Mitigation: Review recruiter terms and assess critical engineering de-risking.* |
-| **4** | `RISK-004` | Financial | **HIGH** | `E003`, `E007`, `E009` | **Runway Compression & Capital Dependency:** Runway decreased from 14 to 13 months at Rs. 44 L/month burn. Closing the investment round is urgent. *Mitigation: Model contingency expense scenarios if round slips.* |
-| **5** | `RISK-005` | Financial | **MEDIUM** | `E017`, `E018`, `E019`, `E023`, `E024` | **Suspected February Payroll Discrepancy Requiring Verification:** Available records indicate a potential partial-month overpayment for Rahul Verma in February 2026 during finance leave. An employee query and acknowledgment are documented, but formal Keka reconciliation records remain pending. *Mitigation: Review outstanding queries against formal Keka payroll module records and verify pro-ration rules.* |
+| **2** | `RISK-006` | Engineering & People | **CRITICAL** | `E033`, `E034`, `E039`, `E040`, `E045` | **Engineering Capacity Deficit & Engagement Collapse:** Engineering quarterly pulse dropped by 0.8 points (3.9 to 3.1) with 4 of 5 responding, while critical de-risking backend requisitions (REQ-014, REQ-015) remain frozen per CFO directive to conserve burn until round closes. *Mitigation: VP Engineering to conduct 1:1 sessions and evaluate selective unfreezing of backend routing headcount.* |
+| **3** | `RISK-002` | Governance | **HIGH** | `E001`, `E003`, `E006`, `E007`, `E025`, `E027` | **Executive Financial Misalignment on ARR & Burn:** Board reports recurring ARR of Rs. 6.1 Cr and monthly burn of Rs. 44 L, conflicting with verbal statements (Rs. 42-45 Cr ARR and 2.2-2.5 L burn). *Mitigation: Reconcile internal metric definitions with board reports.* |
+| **4** | `RISK-003` | Operational | **HIGH** | `E005`, `E009`, `E014` | **Hiring Freeze Impairing Backend Commitments:** Veloxa committed to adding 2 backend engineers to de-risk Atlas and paid Rs. 1.77 L advance to Cohere Recruiting, but froze hiring while closing the round. *Mitigation: Review recruiter terms and assess critical engineering de-risking.* |
+| **5** | `RISK-004` | Financial | **HIGH** | `E003`, `E007`, `E009` | **Runway Compression & Capital Dependency:** Runway decreased from 14 to 13 months at Rs. 44 L/month burn. Closing the investment round is urgent. *Mitigation: Model contingency expense scenarios if round slips.* |
+| **6** | `RISK-007` | Key-Person & Commercial | **HIGH** | `E032`, `E041`, `E030` | **Key-Person Departure in Product Marketing & Unverified Handover:** Siddharth Mehta resigned with last working day 31 Oct 2026. Handover of the launch kit is documented only as an exit promise, while backfill REQ-016 has 7 candidates in pipeline. *Mitigation: Verify completion of launch kit handover and accelerate candidate selection for REQ-016.* |
+| **7** | `RISK-005` | Financial Control | **MEDIUM** | `E017`, `E018`, `E019`, `E023`, `E024` | **Suspected February Payroll Discrepancy Requiring Verification:** Available records indicate a potential partial-month overpayment for Rahul Verma in February 2026 during finance leave. An employee query and acknowledgment are documented, but formal Keka reconciliation records remain pending. *Mitigation: Review outstanding queries against formal Keka payroll module records and verify pro-ration rules.* |
 
 ---
 
 ## 7. Deterministic Verification & One-Command Deployment
 
 ### Stack
-- **Backend:** Python 3.10+, FastAPI, SQLAlchemy, SQLite, Pydantic v2, Pytest (**57/57 automated tests passing** across core, audit, and data-driven suites).
-- **Frontend:** Next.js 14.2 (App Router), React 18, TypeScript, Tailwind CSS, Lucide React (Production build verified, interactive As-Of temporal selector).
-- **Database Inventory (veloxa.db):** 8 tables fully populated (`sources=12`, `people=19 [14 interviewable]`, `evidence=27`, `claims=22`, `conflicts=4`, `assumptions=5`, `agent_memories=42`, `audit_logs=0`).
-- **Source Adapters:** Extensible adapter architecture (`backend/app/services/adapters/`) providing unified contracts (`BaseSourceAdapter`, `TextManifestAdapter`, `TranscriptAdapter`, `BoardUpdateAdapter`, `EmailAdapter`, `SpreadsheetAdapter`).
+- **Backend:** Python 3.10+, FastAPI, SQLAlchemy, SQLite, Pydantic v2, Pytest (**75/75 automated tests passing** across core, audit, data-driven, and Day 2 suites).
+- **Frontend:** Next.js 14.2 (App Router), React 18, TypeScript, Tailwind CSS, Lucide React (Production build verified, interactive As-Of temporal selector, T6a Top 3 risk cards, HR insights panel).
+- **Database Inventory (veloxa.db):** 8 tables fully populated (`sources=22`, `people=19 [14 interviewable]`, `evidence=47`, `claims=34`, `conflicts=6`, `assumptions=7`, `agent_memories=65`, `audit_logs=0`).
+- **Source Adapters:** Extensible adapter architecture (`backend/app/services/adapters/`) providing unified contracts (`BaseSourceAdapter`, `TextManifestAdapter`, `TranscriptAdapter`, `BoardUpdateAdapter`, `EmailAdapter`, `SpreadsheetAdapter`, `ResignationLetterAdapter`).
 - **Fresh-Clone Guarantee:** Public repository contains normalized privacy-safe seed data. Evaluators can clone and run without requiring external private binary spreadsheets or API keys.
 - **LLM Mode:** Deterministic No-Key engine is default. Zero external API keys required to execute the test suite or run the application.
 

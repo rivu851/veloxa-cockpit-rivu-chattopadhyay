@@ -150,3 +150,43 @@
      - Pytest suite: **57 passed in 1.84s** across 3 test files (0 failed, 2 warnings).
      - Frontend production build: `npm run build` compiled 4 static routes with 0 errors.
      - SQLite row counts: `sources=12`, `people=19 [14 interviewable]`, `evidence=27`, `claims=22`, `conflicts=4`, `assumptions=5`, `agent_memories=42`, `audit_logs=0`.
+
+
+---
+
+## Log Entry 8: Day 2 Source Pack Ingestion & Governance Data Modeling
+- **Timestamp:** 2026-11-17T11:45:00+05:30 to 2026-11-17T12:10:00+05:30
+- **Action:** Ingested all 10 Day 2 sources from the user-supplied text transcription with exact file, sheet/page, and row coordinates:
+  - Registered sources: `T3_Head_of_People_Call.docx`, `T6a_CEO_Voice_Note.docx`, `Resignation_Letter_SM.pdf`, `06.eml`, `07.eml`, `10.eml`, `11.eml`, `Hiring_Tracker.xlsx`, `Leave_Register.xlsx`, `Pulse_Survey.xlsx` (`provenance_type='user_supplied_text_transcription'`).
+  - Added Day 2 Evidence: `E028` through `E047` (20 new items, total 47).
+  - Added Day 2 Claims: `CLM-023` through `CLM-034` (12 new claims, total 34).
+  - Cataloged Conflicts: `CONF-005` (Pulse survey comment disclosure vs anonymity) and `CONF-006` (T3 verbal figures vs formal tracker), both marked `UNRESOLVED`.
+  - Added Operational Assumptions: `ASM-006` (engineering capacity/workload drop) and `ASM-007` (remote request & launch kit exit promise).
+  - Extended Persona Memories: 23 new agent memory records (total 65), maintaining exactly 14 interviewable agents and 19 employees.
+  - Implemented `/api/hr-insights` endpoint returning Culture Amp department engagement trends, Keka Hire requisitions status, and privacy safeguards.
+  - Authored defensible written response to CEO voice note T6a in `VOICE_NOTE_RESPONSES/T6a.md` (decision status: `PROPOSED ACCEPT WITH SCOPE`).
+  - Created automated test suite `backend/tests/test_day2.py` with 18 automated tests.
+  - Verified database counts and idempotency across repeat seed runs (`sources=22`, `people=19`, `conflicts=6`, `assumptions=7`, `evidence=47`, `claims=34`, `agent_memories=65`).
+
+---
+
+## Log Entry 9: Query Routing Precedence Fix, Frontend T6a Implementation & Production Verification
+- **Timestamp:** 2026-11-17T12:15:00+05:30 to 2026-11-17T12:32:00+05:30
+- **Action:** Addressed domain query handler evaluation ordering in `backend/app/services/query_engine.py` and implemented Next.js frontend executive views:
+  - Reordered domain handlers in `query_engine.py` so specific Day 2 queries (Pulse survey, qualitative comment privacy refusal, Keka Hire requisitions, Siddharth resignation, Arjun remote request, Priya personal leave, T3 call ambiguities) evaluate before broad Day 1 handlers (ARR, Burn, Headcount, Atlas).
+  - Hardened word boundaries on financial burn (`\bburn\b`) and excluded "burnout" and "priya" from financial burn handler.
+  - Verified all **75 automated tests passing** across 4 test suites in 1.99s:
+    ```text
+    backend/tests/test_audit_api.py ......................   [ 29%]
+    backend/tests/test_cockpit.py ........................... [ 65%]
+    backend/tests/test_data_driven.py ........              [ 76%]
+    backend/tests/test_day2.py ..................           [100%]
+    ======================= 75 passed, 2 warnings in 1.99s ========================
+    ```
+  - Implemented Next.js executive UI in `frontend/src/app/page.tsx`:
+    - Top 3 Morning Briefing Cards answering CEO voice note T6a ("What to worry about") with rank, severity badge, concise action/why, and expandable evidence citations.
+    - Toggleable "View All (7) Risks" drawer/accordion.
+    - Dedicated HR & People Insights panel showing Culture Amp engagement deltas (-0.8 Eng, -0.4 Mktg), participation rates, Keka Hire requisition statuses, and privacy safeguard notices.
+    - Updated As-Of dropdown with Day 2 active (`Day2_2026-11-17T10:00:00+05:30`) and pre-release boundary demonstration (`2026-11-17T09:59:59+05:30`).
+  - Executed Next.js production build (`npm run build`): compiled 4 static routes with 0 errors and verified clean bundle output.
+  - Updated all governance documents: `README.md`, `ARCHITECTURE.md`, `DECISIONS.md`, `ASSUMPTIONS.md`, `TRANSCRIPT_NOTES.md`, and `AI_LOG.md`.

@@ -285,7 +285,7 @@ export default function CockpitDashboard() {
         {/* T6a EXECUTIVE MORNING BRIEFING: TOP 3 RISKS ("What to worry about") */}
         <section className="bg-slate-900/80 border border-blue-500/40 rounded-xl p-6 shadow-xl backdrop-blur relative overflow-hidden">
           <div className="absolute top-0 right-0 bg-blue-500/10 border-l border-b border-blue-500/30 px-3 py-1 text-[11px] text-blue-300 rounded-bl-lg font-mono">
-            T6a View • Decision: PROPOSED ACCEPT WITH SCOPE (Awaiting Candidate Approval)
+            T6a View • Decision: APPROVED: ACCEPT WITH SCOPE (Ratified by Candidate)
           </div>
           <div className="flex items-center justify-between mb-4">
             <div>

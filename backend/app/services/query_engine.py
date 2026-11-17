@@ -32,6 +32,8 @@ def parse_as_of_date(as_of: Optional[str]) -> Optional[datetime]:
     try:
         if "_" in as_of_clean:
             as_of_clean = as_of_clean.split("_", 1)[1]
+        # URL decode fix: if '+' was decoded as ' ' in query string timezone offset (e.g. "T10:00:00 05:30")
+        as_of_clean = re.sub(r' (\d{2}:\d{2})$', r'+\1', as_of_clean)
         dt = date_parser.parse(as_of_clean)
         if dt.tzinfo is not None:
             dt = dt.replace(tzinfo=None)
@@ -906,6 +908,19 @@ def chat_agent(db: Session, emp_id: str, message: str, as_of: Optional[str] = No
             confidence="HIGH",
             knowledge_boundaries_respected=True
         )
+
+    # Temporal boundary check: Unreleased Day 2 information in Agent Chat
+    if as_of_dt and as_of_dt < DAY2_RELEASE_TIME:
+        if any(k in msg_lower for k in ["pulse", "survey", "cult amp", "siddharth", "resignation", "pune", "remote"]):
+            return AgentChatResponse(
+                emp_id=emp_id,
+                full_name=person.full_name,
+                title=person.title,
+                reply="The requested topic relates to records not yet released as of the specified as-of date (prior to 17 Nov 2026 10:00 IST).",
+                citations=[],
+                confidence="REFUSED",
+                knowledge_boundaries_respected=True
+            )
 
     # Retrieve memories isolated by emp_id from SQLite (Task 4)
     memories = db.query(AgentMemory).filter(AgentMemory.emp_id == emp_id).all()

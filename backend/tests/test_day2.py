@@ -64,6 +64,64 @@ def test_release_temporal_100000_access():
     citation_refs = [c["ref"] for c in data["citations"]]
     assert "E045" in citation_refs
 
+def test_release_temporal_agent_chat_095959_vs_100000():
+    # Agent chat at 09:59:59 IST blocks Day 2 pulse facts
+    r_denied = client.post("/api/agents/VX005/chat", json={
+        "message": "What is the engineering pulse survey score?",
+        "as_of": "2026-11-17T09:59:59+05:30"
+    })
+    assert r_denied.status_code == 200
+    d_denied = r_denied.json()
+    assert d_denied["confidence"] == "REFUSED"
+    assert "not yet released" in d_denied["reply"]
+    assert len(d_denied["citations"]) == 0
+
+    # Agent chat at 10:00:00 IST permits Day 2 pulse facts
+    r_allowed = client.post("/api/agents/VX005/chat", json={
+        "message": "What is the engineering pulse survey score?",
+        "as_of": "2026-11-17T10:00:00+05:30"
+    })
+    assert r_allowed.status_code == 200
+    d_allowed = r_allowed.json()
+    assert "3.1" in d_allowed["reply"]
+    refs = [c["ref"] for c in d_allowed["citations"]]
+    assert "E045" in refs
+
+def test_release_temporal_risks_095959_vs_100000():
+    # Risks at 09:59:59 IST only returns Day 1 risks (5 total); RISK-006 & RISK-007 omitted
+    r_pre = client.get("/api/risks?as_of=2026-11-17T09:59:59+05:30")
+    assert r_pre.status_code == 200
+    d_pre = r_pre.json()
+    risk_ids_pre = [r["risk_id"] for r in d_pre["risks"]]
+    assert d_pre["total_risks"] == 5
+    assert "RISK-006" not in risk_ids_pre
+    assert "RISK-007" not in risk_ids_pre
+
+    # Risks at 10:00:00 IST returns all 7 risks including RISK-006 & RISK-007
+    r_post = client.get("/api/risks?as_of=2026-11-17T10:00:00+05:30")
+    assert r_post.status_code == 200
+    d_post = r_post.json()
+    risk_ids_post = [r["risk_id"] for r in d_post["risks"]]
+    assert d_post["total_risks"] == 7
+    assert "RISK-006" in risk_ids_post
+    assert "RISK-007" in risk_ids_post
+
+def test_release_temporal_hr_insights_095959_vs_100000():
+    # HR insights at 09:59:59 IST blocks data
+    r_pre = client.get("/api/hr-insights?as_of=2026-11-17T09:59:59+05:30")
+    assert r_pre.status_code == 200
+    d_pre = r_pre.json()
+    assert len(d_pre["team_engagement"]) == 0
+    assert len(d_pre["requisitions"]) == 0
+    assert "released on Day 2" in d_pre["privacy_safeguards"][0]
+
+    # HR insights at 10:00:00 IST permits data
+    r_post = client.get("/api/hr-insights?as_of=2026-11-17T10:00:00+05:30")
+    assert r_post.status_code == 200
+    d_post = r_post.json()
+    assert len(d_post["team_engagement"]) == 6
+    assert len(d_post["requisitions"]) == 6
+
 # 2. Exact Hiring Status and Pipelines
 def test_exact_hiring_status_and_pipelines():
     response = client.post("/api/ask", json={
@@ -211,7 +269,7 @@ def test_t6a_written_response_document_exists():
         content = f.read()
     assert "T6a" in content
     assert "CEO Voice Note" in content
-    assert "PROPOSED ACCEPT WITH SCOPE" in content
+    assert "ACCEPT WITH SCOPE" in content
     assert "Top 3" in content or "top-three" in content
 
 # 12. Default Top Three Risk Cards and Full Risk List Accessible

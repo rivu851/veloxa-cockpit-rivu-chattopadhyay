@@ -120,7 +120,8 @@
 - **Impact on Cockpit Logic:** Queries requesting survey comments return `REFUSAL` with policy restriction explanation and cite `E036` (11.eml) and `E045`.
 - **Confidence:** **HIGH**
 - **What Would Change Conclusion:** Written consent waiver from all 5 engineering team members or HR board governance amendment reducing the re-identification threshold.
-- **Human Decision Status:** **`UNRESOLVED`** (Maintained as an active governance policy pending candidate / board confirmation).
+- **Human Decision Status:** **`POLICY APPROVED (Disclosure Restriction Enforced) / FACTUAL DISCREPANCY UNRESOLVED`**  
+  *Candidate Ratification:* Candidate approved treating the written HR restriction in `11.eml` as governing disclosure (withholding qualitative pulse comments for teams with fewer than 6 members). The verbal disagreement in transcript T3 is preserved as an unresolved historical difference, but the written HR restriction governs cockpit disclosure across all endpoints.
 
 ---
 
@@ -146,7 +147,8 @@
 - **Impact on Cockpit Logic:** Queries regarding attrition return the literal quote *"about twelve"* with unit undefined, flag `CONF-006`, and cite E028.
 - **Confidence:** **LOW (for verbal claims)** / **HIGH (for Keka Hire tracker)**
 - **What Would Change Conclusion:** Official historical ATS requisitions dump from Lever/Keka Hire for April–August 2026 or signed HRBP exit ledger.
-- **Human Decision Status:** **`UNRESOLVED`** (Formal conflict remains documented and open).
+- **Human Decision Status:** **`OPERATIONAL POLICY APPROVED (Hiring Tracker Authoritative for Listed Requisitions) / HISTORICAL CLAIMS UNRESOLVED`**  
+  *Candidate Ratification:* Candidate approved treating `Hiring_Tracker.xlsx` as authoritative for its listed requisitions (REQ-011 through REQ-017), not as proof of all historical hiring. Ambiguous T3 attrition ("about twelve"), offer acceptance ("down to fifty-something"), and historical hiring claims ("twenty-two open", "lost six") are explicitly preserved as unresolved numeric discrepancies without inventing unrecorded figures.
 
 ---
 
@@ -155,7 +157,7 @@
 ### 1. Source Context
 - **Source:** `T6a_CEO_Voice_Note.docx` (Auto-transcribed WhatsApp voice note forwarded by Ananya's assistant)  
 - **Transcription Text:** *"Hi, quick one. I won't type questions every morning, na. When I open it, it should just tell me what to worry about. Top three. Okay, bye."*
-- **Candidate Governance Status:** **PROPOSED ACCEPT WITH SCOPE (Awaiting Candidate Confirmation)**.
+- **Candidate Governance Status:** **`APPROVED: ACCEPT WITH SCOPE (Ratified by Candidate / Human Reviewer)`**
 
 ### 2. Decision & Scope Analysis
 - **Decision:** **ACCEPT WITH SCOPE**  
@@ -164,6 +166,6 @@
   - Each risk card includes severity badge, category, summary, recommended mitigation, and expandable evidence citations.
   - Zero-click executive briefing satisfies Ananya's request without manual morning typing.
 - **What Was Refused / Bound by Policy:**
-  - The cockpit refuses to hide the remaining enterprise risks: a toggle button (`View All 7 Risks`) guarantees full transparency.
+  - The cockpit preserves access to the full enterprise risk registry: a toggle button (`View All 7 Risks`) guarantees full visibility.
   - The cockpit refuses to invent unverified risks or expose confidential qualitative HR comments.
-  - The decision is logged as **PROPOSED** pending candidate confirmation, preserving the human decision boundary.
+  - Decision is ratified by candidate review while preserving strict evidence boundaries.

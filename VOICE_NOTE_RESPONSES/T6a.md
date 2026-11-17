@@ -4,7 +4,7 @@
 **From:** Implementation Lead / CXO Cockpit Architecture (Candidate: Rivu Chattopadhyay)  
 **Date:** Tuesday, 17 November 2026 (Day 2 Milestone, 11:59 PM IST Target)  
 **Reference Document:** `T6a_CEO_Voice_Note.docx` (`E031`)  
-**Decision Governance Status:** **`PROPOSED ACCEPT WITH SCOPE (Pending Candidate Approval)`**  
+**Decision Governance Status:** **`APPROVED: ACCEPT WITH SCOPE (Ratified by Candidate / Human Reviewer)`**  
 
 ---
 
@@ -17,8 +17,8 @@
 
 ## 2. Decision Status & Executive Summary
 
-- **Proposed Decision:** **ACCEPT WITH SCOPE**  
-- **Governance Classification:** Logged as a **PROPOSED** human decision awaiting final confirmation by candidate review. The system does not falsely claim the human candidate or executive board has ratified this decision prematurely.
+- **Approved Decision:** **ACCEPT WITH SCOPE**  
+- **Governance Classification:** Formally **APPROVED and RATIFIED** by human candidate review. The cockpit defaults to three ranked, cited executive risks, while keeping the full risk registry accessible.
 - **Executive Rationale:**  
   The CEO needs zero-friction morning orientation without typing repetitive prompts every day. However, unconditionally hardcoding three static cards would violate factual grounding, conceal active operational volatility, and fail when evidence changes. Therefore, we **accept** the requirement to automatically present top-three risk cards upon opening the cockpit, but **scope** the implementation into a dynamic, evidence-backed ranking engine that maintains an expandable view of all company risks, preserves honest uncertainty, and enforces strict HR privacy safeguards.
 

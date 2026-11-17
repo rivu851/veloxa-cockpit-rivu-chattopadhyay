@@ -5,17 +5,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.core.config import settings
 from backend.app.db.session import init_db, SessionLocal
-from backend.app.services.ingest import seed_day1_data
+from backend.app.services.ingest import seed_day1_data, seed_day2_data
 from backend.app.api.endpoints import router as api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize database tables
     init_db()
-    # Seed deterministic Day 1 evidence and entities
+    # Seed deterministic Day 1 and Day 2 evidence and entities
     db = SessionLocal()
     try:
         seed_day1_data(db)
+        seed_day2_data(db)
     finally:
         db.close()
     yield
@@ -40,7 +41,12 @@ app.include_router(api_router, prefix="/api")
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "release_day": "Day1", "as_of": "2026-11-16T10:00:00+05:30"}
+    return {
+        "status": "healthy",
+        "release_day": "Day1",
+        "active_release": "Day2",
+        "as_of": "2026-11-17T10:00:00+05:30"
+    }
 
 if __name__ == "__main__":
     import uvicorn

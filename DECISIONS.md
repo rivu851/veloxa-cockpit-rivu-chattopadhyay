@@ -1,5 +1,5 @@
 # Veloxa CXO Cockpit — Source Conflict Decisions Register
-**Assessment Phase:** Individual Hackathon (Day 1 Release — Mon 16 Nov 2026 10:00 IST)  
+**Assessment Phase:** Individual Hackathon (Day 2 Release — Tue 17 Nov 2026 10:00 IST)  
 **Author / Candidate:** Rivu Chattopadhyay  
 **Status Policy:** All consequential source conflicts are cataloged with competing evidence, human decisions, and sensitivity analysis. Discrepancies are maintained as unresolved conflicting claims without ungrounded speculation.
 
@@ -98,3 +98,72 @@
 - **Confidence:** **MEDIUM**
 - **What Would Change Conclusion:** Formal Keka payroll reconciliation vouchers, year-end Form 16 / tax audit filings, or signed payroll audit report.
 - **Human Decision Status:** **`UNRESOLVED`** (Formal conflict remains documented and open).
+
+---
+
+## Conflict CONF-005: Pulse Survey Comments Disclosure vs Small-Team Anonymity
+
+### 1. Competing Sources
+- **Verbal Statement:** `T3_Head_of_People_Call.docx` (MeetNotes AI summary, recording 31 min)  
+  *Deepa Joshi assertion:* Wants Ananya to see survey comments directly, asserting *"numbers alone hide everything"*.
+- **Written Directive:** `11.eml` (Date: Tue, 29 Sep 2026 17:30:00 +0530)  
+  *Deepa Joshi to Ananya Rao:* *"Ananya, engineering pulse dropped this quarter. The team is too small for me to share comments. I'd suggest Vikram does 1:1s this week."*
+- **Survey Dataset:** `Pulse_Survey.xlsx` (Culture Amp quarterly export)  
+  *Team Sizes:* Engineering has 5 members (4 responded), Marketing has 3 members (3 responded), Finance 3, People & Ops 3, Sales 2, Support 2.
+
+### 2. Human Conflict Decision
+- **Authoritative Operational Policy:** Enforce privacy-by-design policy strictly **withholding qualitative comments** for any team with fewer than 6 members to protect employee confidentiality and prevent re-identification.
+- **Precedence Hierarchy:** Deepa Joshi's written directive in `11.eml` directly supersedes the earlier verbal suggestion in `T3_Head_of_People_Call.docx`.
+- **Negative Constraints:**
+  - Do **not** disclose engineering or marketing qualitative comments to executive queries.
+  - Do **not** claim comments were lost or unrecorded; they exist in Cult Amp but are restricted at the service layer.
+- **Impact on Cockpit Logic:** Queries requesting survey comments return `REFUSAL` with policy restriction explanation and cite `E036` (11.eml) and `E045`.
+- **Confidence:** **HIGH**
+- **What Would Change Conclusion:** Written consent waiver from all 5 engineering team members or HR board governance amendment reducing the re-identification threshold.
+- **Human Decision Status:** **`UNRESOLVED`** (Maintained as an active governance policy pending candidate / board confirmation).
+
+---
+
+## Conflict CONF-006: T3 Verbal Recruitment & Attrition Assertions vs Formal Hiring Tracker
+
+### 1. Competing Sources
+- **Verbal Assertions:** `T3_Head_of_People_Call.docx`  
+  - Deepa asserts attrition is *"about twelve, which is normal for Bangalore"* (unspecified whether 12%, 12 headcount, or industry benchmark).
+  - Rohan claims there were *"twenty-two open roles in April"* and *"we lost six of them in August"*, with offer acceptance *"down to fifty-something"*.
+  - Disputed manager training timing: Deepa states *"November-ish"*, Rohan asserts *"January"*.
+- **Formal System Record:** `Hiring_Tracker.xlsx` (Keka Hire export, 31-Oct-2026)  
+  *Total Requisitions:* Exactly 6 rows (`REQ-011` through `REQ-017`, excluding `REQ-012`), with status: REQ-011 (Closed-not hired), REQ-013 (Filled), REQ-014 (On hold, pipeline 3), REQ-015 (On hold, pipeline 5), REQ-016 (Open, pipeline 7), REQ-017 (Open, pipeline 2).
+- **Formal Executive Correspondence:** `06.eml` & `07.eml`  
+  *Meera Iyer & Vikram Menon:* Only 2 requisitions (`REQ-014` and `REQ-015`) were paused on 12 Aug 2026 until the funding round closes.
+
+### 2. Human Conflict Decision
+- **Authoritative Operational Source:** Ground all operational counts in `Hiring_Tracker.xlsx` (6 requisitions) and `06.eml`/`07.eml`.
+- **Treatment of Transcript Statements:** Catalog Deepa's "about twelve" and Rohan's "twenty-two open / lost six / fifty-something" as **unresolved verbal ambiguities**.
+- **Negative Constraints:**
+  - Do **not** invent units for "about twelve" (do not assume 12% or 12 resignations).
+  - Do **not** assert 22 open roles existed or 6 resignations occurred without primary ATS records.
+  - Do **not** guess which engineer Deepa was worried about or link her comment to Priya Nair.
+- **Impact on Cockpit Logic:** Queries regarding attrition return the literal quote *"about twelve"* with unit undefined, flag `CONF-006`, and cite E028.
+- **Confidence:** **LOW (for verbal claims)** / **HIGH (for Keka Hire tracker)**
+- **What Would Change Conclusion:** Official historical ATS requisitions dump from Lever/Keka Hire for April–August 2026 or signed HRBP exit ledger.
+- **Human Decision Status:** **`UNRESOLVED`** (Formal conflict remains documented and open).
+
+---
+
+## T6a Executive Voice Note Decision Record
+
+### 1. Source Context
+- **Source:** `T6a_CEO_Voice_Note.docx` (Auto-transcribed WhatsApp voice note forwarded by Ananya's assistant)  
+- **Transcription Text:** *"Hi, quick one. I won't type questions every morning, na. When I open it, it should just tell me what to worry about. Top three. Okay, bye."*
+- **Candidate Governance Status:** **PROPOSED ACCEPT WITH SCOPE (Awaiting Candidate Confirmation)**.
+
+### 2. Decision & Scope Analysis
+- **Decision:** **ACCEPT WITH SCOPE**  
+- **What Was Accepted:**
+  - Default landing screen prominently displays the top-3 ranked enterprise risks (`RISK-001` Atlas v3 launch slippage, `RISK-006` Engineering capacity deficit & engagement collapse, `RISK-002` Executive ARR/burn discrepancy).
+  - Each risk card includes severity badge, category, summary, recommended mitigation, and expandable evidence citations.
+  - Zero-click executive briefing satisfies Ananya's request without manual morning typing.
+- **What Was Refused / Bound by Policy:**
+  - The cockpit refuses to hide the remaining enterprise risks: a toggle button (`View All 7 Risks`) guarantees full transparency.
+  - The cockpit refuses to invent unverified risks or expose confidential qualitative HR comments.
+  - The decision is logged as **PROPOSED** pending candidate confirmation, preserving the human decision boundary.

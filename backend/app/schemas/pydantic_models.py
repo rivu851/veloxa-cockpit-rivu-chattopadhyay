@@ -87,3 +87,29 @@ class ConflictResponse(BaseModel):
     impact_level: str
     human_status: str
     resolution_notes: Optional[str] = None
+
+class TeamEngagement(BaseModel):
+    team: str
+    team_size: int
+    responses: int
+    latest_score: float
+    prior_score: float
+    change: float
+    comments_status: str
+
+class RequisitionItem(BaseModel):
+    req_id: str
+    role: str
+    team: str
+    manager_id: str
+    opened_date: str
+    status: str
+    status_date: str
+    pipeline_count: int
+    notes: Optional[str] = None
+
+class HRInsightsResponse(BaseModel):
+    as_of: str
+    team_engagement: List[TeamEngagement]
+    requisitions: List[RequisitionItem]
+    privacy_safeguards: List[str]

@@ -678,3 +678,489 @@ def seed_day1_data(db: Session):
     ingest_day1_assumptions(db)
     ingest_day1_memories(db)
     db.commit()
+
+DAY2_RELEASE_TIME = datetime.datetime(2026, 11, 17, 10, 0, 0)
+
+def ingest_day2_sources(db: Session) -> dict:
+    sources_data = [
+        {
+            "file_name": "T3_Head_of_People_Call.docx",
+            "file_type": "docx",
+            "description": "MeetNotes AI auto-summary of Head of People call (31 min, good audio). Speakers: Deepa J., Ananya R., Rohan (joined late).",
+            "provenance": "Executive interview transcript (provenance_type='user_supplied_text_transcription')."
+        },
+        {
+            "file_name": "T6a_CEO_Voice_Note.docx",
+            "file_type": "docx",
+            "description": "Auto-transcribed WhatsApp voice notes forwarded by Ananya's assistant.",
+            "provenance": "CEO voice note audio transcription (provenance_type='user_supplied_text_transcription')."
+        },
+        {
+            "file_name": "Resignation_Letter_SM.pdf",
+            "file_type": "pdf",
+            "description": "Resignation letter from Siddharth Mehta (Product Marketing Manager) to Nikhil Bose, dated 15 Sep 2026.",
+            "provenance": "HR formal personnel documentation (provenance_type='user_supplied_text_transcription')."
+        },
+        {
+            "file_name": "06.eml",
+            "file_type": "eml",
+            "description": "Email from Meera Iyer to Vikram Menon pausing REQ-014 and REQ-015.",
+            "provenance": "Email server export (provenance_type='user_supplied_text_transcription')."
+        },
+        {
+            "file_name": "07.eml",
+            "file_type": "eml",
+            "description": "Email from Vikram Menon to Meera Iyer acknowledging hiring pause.",
+            "provenance": "Email server export (provenance_type='user_supplied_text_transcription')."
+        },
+        {
+            "file_name": "10.eml",
+            "file_type": "eml",
+            "description": "Email from Arjun Das to Deepa Joshi requesting permanent remote from Pune.",
+            "provenance": "Email server export (provenance_type='user_supplied_text_transcription')."
+        },
+        {
+            "file_name": "11.eml",
+            "file_type": "eml",
+            "description": "Email from Deepa Joshi to Ananya Rao on pulse results and comment withholding.",
+            "provenance": "Email server export (provenance_type='user_supplied_text_transcription')."
+        },
+        {
+            "file_name": "Hiring_Tracker.xlsx",
+            "file_type": "xlsx",
+            "description": "Hiring tracker (Keka Hire) exported 31-Oct-2026.",
+            "provenance": "Keka Hire system export (provenance_type='user_supplied_text_transcription')."
+        },
+        {
+            "file_name": "Leave_Register.xlsx",
+            "file_type": "xlsx",
+            "description": "Leave register maintained by People & Ops (Google Sheet). Nov 2025 to Oct 2026.",
+            "provenance": "People & Ops internal leave spreadsheet (provenance_type='user_supplied_text_transcription').",
+            "is_confidential": True
+        },
+        {
+            "file_name": "Pulse_Survey.xlsx",
+            "file_type": "xlsx",
+            "description": "Culture Amp quarterly pulse, team level only (Oct 2025 to Sep 2026).",
+            "provenance": "Culture Amp quarterly pulse export (provenance_type='user_supplied_text_transcription')."
+        }
+    ]
+
+    source_map = {}
+    for s_dict in sources_data:
+        existing = db.query(Source).filter(Source.file_name == s_dict["file_name"]).first()
+        if not existing:
+            s = Source(
+                file_name=s_dict["file_name"],
+                file_type=s_dict["file_type"],
+                release_day="Day2",
+                released_at=DAY2_RELEASE_TIME,
+                description=s_dict.get("description"),
+                provenance=s_dict.get("provenance"),
+                is_confidential=s_dict.get("is_confidential", False)
+            )
+            db.add(s)
+            db.flush()
+            source_map[s.file_name] = s.id
+        else:
+            source_map[existing.file_name] = existing.id
+    return source_map
+
+def ingest_day2_evidence(db: Session, source_map: dict):
+    evidence_items = [
+        # T3 Head of People Call
+        {
+            "ref": "E028", "source_file": "T3_Head_of_People_Call.docx", "sheet_or_page": "Transcript", "row_or_line": "Summary",
+            "fact_text": "Deepa says attrition is 'about twelve, which is normal for Bangalore' (unclear if this is a percentage, a headcount, or a target); pulse surveys run quarterly on 'Cult Amp'; engineering scores 'dipped in the July round'; and she wants Ananya to see survey comments directly ('numbers alone hide everything').",
+            "entities_named": "Deepa J., Ananya R., Culture Amp", "date_as_written": "People Call",
+            "record_date": datetime.datetime(2026, 11, 3), "effective_date": datetime.datetime(2026, 11, 3), "confidence": "M"
+        },
+        {
+            "ref": "E029", "source_file": "T3_Head_of_People_Call.docx", "sheet_or_page": "Transcript", "row_or_line": "Key points",
+            "fact_text": "HR team consists of Deepa, Rohan on hiring, and Lakshmi as HRBP ('she handles exits'). Rohan says there were 'twenty-two open roles in April' and 'we lost six of them in August'; offer acceptance is 'down to fifty-something'; hiring runs on 'Liver' (probable transcription of Keka Hire) and HR records on 'Kekka' (probable transcription of Keka).",
+            "entities_named": "Deepa, Rohan, Lakshmi", "date_as_written": "People Call",
+            "record_date": datetime.datetime(2026, 11, 3), "effective_date": datetime.datetime(2026, 11, 3), "confidence": "M"
+        },
+        {
+            "ref": "E030", "source_file": "T3_Head_of_People_Call.docx", "sheet_or_page": "Transcript", "row_or_line": "Key points",
+            "fact_text": "Exit interviews: 'most of them say workload'. Deepa mentions 'Sid from marketing' has put in his papers. Deepa says there is 'one engineer I'm worried about' but will not name them on the call. Manager training started 'after Diwali, so November-ish' (Rohan says 'January').",
+            "entities_named": "Deepa, Rohan, Sid from marketing", "date_as_written": "People Call",
+            "record_date": datetime.datetime(2026, 11, 3), "effective_date": datetime.datetime(2026, 11, 3), "confidence": "M"
+        },
+        # T6a CEO Voice Note
+        {
+            "ref": "E031", "source_file": "T6a_CEO_Voice_Note.docx", "sheet_or_page": "Voice Note", "row_or_line": "Audio transcript",
+            "fact_text": "CEO Ananya Rao requests: 'Hi, quick one. I won't type questions every morning, na. When I open it, it should just tell me what to worry about. Top three. Okay, bye.'",
+            "entities_named": "Ananya Rao", "date_as_written": "Voice Note T6a",
+            "record_date": datetime.datetime(2026, 11, 17, 8, 30), "effective_date": datetime.datetime(2026, 11, 17), "confidence": "H"
+        },
+        # Resignation Letter SM
+        {
+            "ref": "E032", "source_file": "Resignation_Letter_SM.pdf", "sheet_or_page": "Page 1", "row_or_line": "Body",
+            "fact_text": "Siddharth Mehta submitted resignation on 15 September 2026 to Nikhil Bose with last working day 31 October 2026; seeking clearer launch timelines where prepared work reaches customers; promises to hand over launch kit before leaving.",
+            "entities_named": "Siddharth Mehta, Nikhil Bose", "date_as_written": "15 September 2026",
+            "record_date": datetime.datetime(2026, 9, 15), "effective_date": datetime.datetime(2026, 10, 31), "confidence": "H"
+        },
+        # Emails
+        {
+            "ref": "E033", "source_file": "06.eml", "sheet_or_page": "Email", "row_or_line": "Headers & Body",
+            "fact_text": "CFO Meera Iyer emailed Vikram Menon (cc Ananya Rao, Rohan Banerjee) on 12 Aug 2026: 'Pausing REQ-014 and REQ-015 until the round closes. Burn is the priority this quarter.'",
+            "entities_named": "Meera Iyer, Vikram Menon, Ananya Rao, Rohan Banerjee", "date_as_written": "Wed, 12 Aug 2026 10:12:00 +0530",
+            "record_date": datetime.datetime(2026, 8, 12, 10, 12), "effective_date": datetime.datetime(2026, 8, 12), "confidence": "H"
+        },
+        {
+            "ref": "E034", "source_file": "07.eml", "sheet_or_page": "Email", "row_or_line": "Headers & Body",
+            "fact_text": "Vikram Menon replied to Meera Iyer on 12 Aug 2026: 'Understood. We'll absorb it.'",
+            "entities_named": "Vikram Menon, Meera Iyer", "date_as_written": "Wed, 12 Aug 2026 11:48:00 +0530",
+            "record_date": datetime.datetime(2026, 8, 12, 11, 48), "effective_date": datetime.datetime(2026, 8, 12), "confidence": "H"
+        },
+        {
+            "ref": "E035", "source_file": "10.eml", "sheet_or_page": "Email", "row_or_line": "Headers & Body",
+            "fact_text": "Arjun Das emailed Deepa Joshi on 18 Sep 2026 requesting to make remote from Pune permanent with offers to visit Bengaluru once a month; no approval or policy change is documented in records.",
+            "entities_named": "Arjun Das, Deepa Joshi", "date_as_written": "Fri, 18 Sep 2026 12:00:00 +0530",
+            "record_date": datetime.datetime(2026, 9, 18, 12, 0), "effective_date": datetime.datetime(2026, 9, 18), "confidence": "H"
+        },
+        {
+            "ref": "E036", "source_file": "11.eml", "sheet_or_page": "Email", "row_or_line": "Headers & Body",
+            "fact_text": "Deepa Joshi emailed Ananya Rao on 29 Sep 2026: 'Ananya, engineering pulse dropped this quarter. The team is too small for me to share comments. I'd suggest Vikram does 1:1s this week.'",
+            "entities_named": "Deepa Joshi, Ananya Rao, Vikram Menon", "date_as_written": "Tue, 29 Sep 2026 17:30:00 +0530",
+            "record_date": datetime.datetime(2026, 9, 29, 17, 30), "effective_date": datetime.datetime(2026, 9, 29), "confidence": "H"
+        },
+        # Hiring Tracker
+        {
+            "ref": "E037", "source_file": "Hiring_Tracker.xlsx", "sheet_or_page": "Requisitions", "row_or_line": "Row 4",
+            "fact_text": "REQ-011: Account Executive, Sales, Hiring Manager VX002, Opened 2026-01-10, Status: Closed - not hired, Status Date: 2026-04-02, In pipeline: 0, Notes: Budget moved to marketing.",
+            "entities_named": "REQ-011, Manoj Kumar", "date_as_written": "2026-04-02",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 4, 2), "confidence": "H"
+        },
+        {
+            "ref": "E038", "source_file": "Hiring_Tracker.xlsx", "sheet_or_page": "Requisitions", "row_or_line": "Row 5",
+            "fact_text": "REQ-013: Backend Engineer, Engineering, Hiring Manager VX004, Opened 2025-12-01, Status: Filled, Status Date: 2026-01-12, In pipeline: 0, Notes: Offer accepted, joining 3-Feb.",
+            "entities_named": "REQ-013, Vikram Menon, Rahul Verma", "date_as_written": "2026-01-12",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 1, 12), "confidence": "H"
+        },
+        {
+            "ref": "E039", "source_file": "Hiring_Tracker.xlsx", "sheet_or_page": "Requisitions", "row_or_line": "Row 6",
+            "fact_text": "REQ-014: Backend Engineer (Routing), Engineering, Hiring Manager VX004, Opened 2026-05-18, Status: On hold, Status Date: 2026-08-12, In pipeline: 3, Notes: Final round 14-Aug cancelled.",
+            "entities_named": "REQ-014, Vikram Menon", "date_as_written": "2026-08-12",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 8, 12), "confidence": "H"
+        },
+        {
+            "ref": "E040", "source_file": "Hiring_Tracker.xlsx", "sheet_or_page": "Requisitions", "row_or_line": "Row 7",
+            "fact_text": "REQ-015: Backend Engineer (Platform), Engineering, Hiring Manager VX004, Opened 2026-05-18, Status: On hold, Status Date: 2026-08-12, In pipeline: 5.",
+            "entities_named": "REQ-015, Vikram Menon", "date_as_written": "2026-08-12",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 8, 12), "confidence": "H"
+        },
+        {
+            "ref": "E041", "source_file": "Hiring_Tracker.xlsx", "sheet_or_page": "Requisitions", "row_or_line": "Row 8",
+            "fact_text": "REQ-016: Product Marketing Manager, Marketing, Hiring Manager VX006, Opened 2026-09-17, Status: Open, Status Date: 2026-09-17, In pipeline: 7, Notes: Backfill.",
+            "entities_named": "REQ-016, Nikhil Bose, Siddharth Mehta", "date_as_written": "2026-09-17",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 9, 17), "confidence": "H"
+        },
+        {
+            "ref": "E042", "source_file": "Hiring_Tracker.xlsx", "sheet_or_page": "Requisitions", "row_or_line": "Row 9",
+            "fact_text": "REQ-017: Support Associate, Support, Hiring Manager VX016, Opened 2026-10-01, Status: Open, Status Date: 2026-10-01, In pipeline: 2.",
+            "entities_named": "REQ-017, Imran Siddiqui", "date_as_written": "2026-10-01",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 10, 1), "confidence": "H"
+        },
+        # Leave Register (Confidential HR Records)
+        {
+            "ref": "E043", "source_file": "Leave_Register.xlsx", "sheet_or_page": "Leave FY", "row_or_line": "Rows 4-15, 21-22",
+            "fact_text": "Approved company leave records Nov 2025 to Oct 2026 include A. Das (Casual 1d, Relocation 5d), K. Subramanian (Casual 1d, Exam 5d), F. Sheikh (Marriage 15d), S. Kulkarni (Sick 2d), N. Bose (Casual 1d), A. Khan (Earned 5d), R. Verma (Casual 1d), S. Mehta (Earned 5d), D. Joshi (Earned 5d), L. Pillai (Casual 1d), V. Menon (Earned 5d).",
+            "entities_named": "Veloxa staff leave", "date_as_written": "Nov 2025 - Oct 2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 10, 31), "confidence": "H", "is_confidential": True
+        },
+        {
+            "ref": "E044", "source_file": "Leave_Register.xlsx", "sheet_or_page": "Leave FY", "row_or_line": "Rows 16-20",
+            "fact_text": "P. Nair took five approved personal half-days (PM, 0.5 days each, total 2.5 days) on 2026-09-03, 2026-09-08, 2026-09-15, 2026-09-17, and 2026-09-24, all approved by VM (Vikram Menon). Source documents do not state reason; no inference of illness, burnout, or performance is permitted.",
+            "entities_named": "P. Nair, VM", "date_as_written": "Sep 2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 9, 24), "confidence": "H", "is_confidential": True
+        },
+        # Pulse Survey
+        {
+            "ref": "E045", "source_file": "Pulse_Survey.xlsx", "sheet_or_page": "Pulse by team", "row_or_line": "Rows 4-7",
+            "fact_text": "Engineering pulse scores on 1-5 scale: Oct-Dec 2025: 4.0 (size 5, 5 responses); Jan-Mar 2026: 4.0 (size 5, 5 responses); Apr-Jun 2026: 3.9 (size 5, 5 responses); Jul-Sep 2026: 3.1 (size 5, 4 responses; drop of -0.8). Comments: Not shown: team smaller than 6.",
+            "entities_named": "Engineering Team, Culture Amp", "date_as_written": "Jul-Sep 2026",
+            "record_date": datetime.datetime(2026, 10, 1), "effective_date": datetime.datetime(2026, 9, 30), "confidence": "H"
+        },
+        {
+            "ref": "E046", "source_file": "Pulse_Survey.xlsx", "sheet_or_page": "Pulse by team", "row_or_line": "Rows 16-19",
+            "fact_text": "Marketing pulse scores on 1-5 scale: Oct-Dec 2025: 3.9; Jan-Mar 2026: 3.9; Apr-Jun 2026: 3.8; Jul-Sep 2026: 3.4 (size 3, 3 responses; drop of -0.4). Comments: Not shown: team smaller than 6.",
+            "entities_named": "Marketing Team, Culture Amp", "date_as_written": "Jul-Sep 2026",
+            "record_date": datetime.datetime(2026, 10, 1), "effective_date": datetime.datetime(2026, 9, 30), "confidence": "H"
+        },
+        {
+            "ref": "E047", "source_file": "Pulse_Survey.xlsx", "sheet_or_page": "Pulse by team", "row_or_line": "Rows 8-15, 20-27",
+            "fact_text": "Quarterly pulse scores across other teams (Apr-Jun to Jul-Sep 2026): Finance 3.8 to 3.9 (+0.1, size 3); People & Ops 4.0 to 4.1 (+0.1, size 3); Sales 3.9 to 3.8 (-0.1, size 2); Support 4.1 to 4.0 (-0.1, size 2). All comments withheld because team sizes are smaller than 6.",
+            "entities_named": "Finance, People & Ops, Sales, Support Teams, Culture Amp", "date_as_written": "Jul-Sep 2026",
+            "record_date": datetime.datetime(2026, 10, 1), "effective_date": datetime.datetime(2026, 9, 30), "confidence": "H"
+        }
+    ]
+
+    for item in evidence_items:
+        existing = db.query(Evidence).filter(Evidence.ref == item["ref"]).first()
+        if not existing:
+            e = Evidence(
+                ref=item["ref"],
+                source_id=source_map[item["source_file"]],
+                sheet_or_page=item.get("sheet_or_page"),
+                row_or_line=item.get("row_or_line"),
+                fact_text=item["fact_text"],
+                entities_named=item.get("entities_named"),
+                date_as_written=item.get("date_as_written"),
+                record_date=item.get("record_date"),
+                effective_date=item.get("effective_date"),
+                date_normalized=item.get("effective_date"),
+                confidence=item.get("confidence", "H"),
+                is_confidential=item.get("is_confidential", False),
+                released_at=DAY2_RELEASE_TIME
+            )
+            db.add(e)
+        else:
+            existing.fact_text = item["fact_text"]
+            existing.entities_named = item.get("entities_named")
+            existing.record_date = item.get("record_date")
+            existing.effective_date = item.get("effective_date")
+            existing.date_normalized = item.get("effective_date")
+            existing.confidence = item.get("confidence", "H")
+            existing.is_confidential = item.get("is_confidential", False)
+
+def ingest_day2_claims(db: Session, source_map: dict):
+    claims_data = [
+        {
+            "claim_id": "CLM-023", "speaker_or_author": "Deepa Joshi (Head of People)", "source_file": "T3_Head_of_People_Call.docx",
+            "claim_category": "Culture", "claim_text": "Deepa states attrition is 'about twelve, which is normal for Bangalore' (unit/denominator undefined).",
+            "date_asserted": "People Call (T3)", "record_date": datetime.datetime(2026, 11, 3), "effective_date": datetime.datetime(2026, 11, 3),
+            "is_disputed": True, "competing_evidence_refs": None, "evidence_ref": "E028", "confidence": "M", "conflict_id": "CONF-006"
+        },
+        {
+            "claim_id": "CLM-024", "speaker_or_author": "Rohan Banerjee (Talent Partner)", "source_file": "T3_Head_of_People_Call.docx",
+            "claim_category": "Operations", "claim_text": "Rohan asserts there were 22 open roles in April, 6 lost in August, and offer acceptance is down to fifty-something.",
+            "date_asserted": "People Call (T3)", "record_date": datetime.datetime(2026, 11, 3), "effective_date": datetime.datetime(2026, 11, 3),
+            "is_disputed": True, "competing_evidence_refs": "E037,E038,E039,E040,E041,E042", "evidence_ref": "E029", "confidence": "M", "conflict_id": "CONF-006"
+        },
+        {
+            "claim_id": "CLM-025", "speaker_or_author": "Deepa Joshi (Head of People)", "source_file": "T3_Head_of_People_Call.docx",
+            "claim_category": "Culture", "claim_text": "Exit interviews indicate most departures cite workload, and there is one unnamed engineer Deepa is worried about.",
+            "date_asserted": "People Call (T3)", "record_date": datetime.datetime(2026, 11, 3), "effective_date": datetime.datetime(2026, 11, 3),
+            "is_disputed": True, "competing_evidence_refs": None, "evidence_ref": "E030", "confidence": "M", "conflict_id": "CONF-006"
+        },
+        {
+            "claim_id": "CLM-026", "speaker_or_author": "Deepa Joshi / Rohan Banerjee", "source_file": "T3_Head_of_People_Call.docx",
+            "claim_category": "Operations", "claim_text": "Manager training start date is disputed: Deepa says after Diwali (November-ish); Rohan says January.",
+            "date_asserted": "People Call (T3)", "record_date": datetime.datetime(2026, 11, 3), "effective_date": datetime.datetime(2026, 11, 3),
+            "is_disputed": True, "competing_evidence_refs": None, "evidence_ref": "E030", "confidence": "M", "conflict_id": "CONF-006"
+        },
+        {
+            "claim_id": "CLM-027", "speaker_or_author": "Deepa Joshi (Head of People)", "source_file": "T3_Head_of_People_Call.docx",
+            "claim_category": "Culture", "claim_text": "Deepa verbally advocated for Ananya to see pulse survey comments directly ('numbers alone hide everything').",
+            "date_asserted": "People Call (T3)", "record_date": datetime.datetime(2026, 11, 3), "effective_date": datetime.datetime(2026, 11, 3),
+            "is_disputed": True, "competing_evidence_refs": "E036,E045,E046,E047", "evidence_ref": "E028", "confidence": "M", "conflict_id": "CONF-005"
+        },
+        {
+            "claim_id": "CLM-028", "speaker_or_author": "Deepa Joshi (Head of People)", "source_file": "11.eml",
+            "claim_category": "Culture", "claim_text": "Deepa explicitly refused to share engineering survey comments with Ananya due to team size being too small, advising Vikram 1:1s.",
+            "date_asserted": "2026-09-29", "record_date": datetime.datetime(2026, 9, 29, 17, 30), "effective_date": datetime.datetime(2026, 9, 29),
+            "is_disputed": True, "competing_evidence_refs": "E028", "evidence_ref": "E036", "confidence": "H", "conflict_id": "CONF-005"
+        },
+        {
+            "claim_id": "CLM-029", "speaker_or_author": "Meera Iyer (CFO)", "source_file": "06.eml",
+            "claim_category": "Operations", "claim_text": "Pausing REQ-014 and REQ-015 until the funding round closes; burn is the priority this quarter.",
+            "date_asserted": "2026-08-12", "record_date": datetime.datetime(2026, 8, 12, 10, 12), "effective_date": datetime.datetime(2026, 8, 12),
+            "is_disputed": False, "competing_evidence_refs": None, "evidence_ref": "E033", "confidence": "H", "conflict_id": None
+        },
+        {
+            "claim_id": "CLM-030", "speaker_or_author": "Vikram Menon (VP Eng)", "source_file": "07.eml",
+            "claim_category": "Operations", "claim_text": "Vikram acknowledged pausing REQ-014 and REQ-015: 'Understood. We'll absorb it.'",
+            "date_asserted": "2026-08-12", "record_date": datetime.datetime(2026, 8, 12, 11, 48), "effective_date": datetime.datetime(2026, 8, 12),
+            "is_disputed": False, "competing_evidence_refs": None, "evidence_ref": "E034", "confidence": "H", "conflict_id": None
+        },
+        {
+            "claim_id": "CLM-031", "speaker_or_author": "Siddharth Mehta (Product Marketing Manager)", "source_file": "Resignation_Letter_SM.pdf",
+            "claim_category": "Marketing", "claim_text": "Siddharth resigned on 15 Sep 2026 with last day 31 Oct 2026; seeking clearer launch timelines; promises launch kit handover.",
+            "date_asserted": "2026-09-15", "record_date": datetime.datetime(2026, 9, 15), "effective_date": datetime.datetime(2026, 10, 31),
+            "is_disputed": False, "competing_evidence_refs": None, "evidence_ref": "E032", "confidence": "H", "conflict_id": None
+        },
+        {
+            "claim_id": "CLM-032", "speaker_or_author": "Arjun Das (Sr Frontend Engineer)", "source_file": "10.eml",
+            "claim_category": "Operations", "claim_text": "Arjun requested permanent remote work from Pune with monthly visits; request is unapproved in records.",
+            "date_asserted": "2026-09-18", "record_date": datetime.datetime(2026, 9, 18, 12, 0), "effective_date": datetime.datetime(2026, 9, 18),
+            "is_disputed": False, "competing_evidence_refs": None, "evidence_ref": "E035", "confidence": "H", "conflict_id": None
+        },
+        {
+            "claim_id": "CLM-033", "speaker_or_author": "Culture Amp Pulse Survey", "source_file": "Pulse_Survey.xlsx",
+            "claim_category": "Culture", "claim_text": "Engineering engagement dropped from 3.9 (Apr-Jun) to 3.1 (Jul-Sep 2026) with 4 of 5 responding; marketing dropped from 3.8 to 3.4; comments withheld for all teams.",
+            "date_asserted": "Jul-Sep 2026", "record_date": datetime.datetime(2026, 10, 1), "effective_date": datetime.datetime(2026, 9, 30),
+            "is_disputed": False, "competing_evidence_refs": None, "evidence_ref": "E045", "confidence": "H", "conflict_id": None
+        },
+        {
+            "claim_id": "CLM-034", "speaker_or_author": "Keka Hire System", "source_file": "Hiring_Tracker.xlsx",
+            "claim_category": "Operations", "claim_text": "Requisition status: REQ-011 closed-not-hired, REQ-013 filled, REQ-014 on hold (pipeline 3), REQ-015 on hold (pipeline 5), REQ-016 open (pipeline 7), REQ-017 open (pipeline 2).",
+            "date_asserted": "Exported 31-Oct-2026", "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 10, 31),
+            "is_disputed": False, "competing_evidence_refs": None, "evidence_ref": "E037", "confidence": "H", "conflict_id": None
+        }
+    ]
+
+    for c in claims_data:
+        s_id = source_map.get(c["source_file"])
+        if not s_id:
+            s_obj = db.query(Source).filter(Source.file_name == c["source_file"]).first()
+            s_id = s_obj.id if s_obj else 1
+
+        existing = db.query(Claim).filter(Claim.claim_id == c["claim_id"]).first()
+        if not existing:
+            cl = Claim(
+                claim_id=c["claim_id"],
+                speaker_or_author=c["speaker_or_author"],
+                source_id=s_id,
+                claim_text=c["claim_text"],
+                claim_category=c["claim_category"],
+                date_asserted=c.get("date_asserted"),
+                record_date=c.get("record_date"),
+                effective_date=c.get("effective_date"),
+                is_disputed=c.get("is_disputed", False),
+                competing_evidence_refs=c.get("competing_evidence_refs"),
+                evidence_ref=c.get("evidence_ref"),
+                confidence=c.get("confidence", "M"),
+                conflict_id=c.get("conflict_id"),
+                released_at=DAY2_RELEASE_TIME
+            )
+            db.add(cl)
+        else:
+            existing.claim_text = c["claim_text"]
+            existing.claim_category = c["claim_category"]
+            existing.is_disputed = c.get("is_disputed", False)
+            existing.competing_evidence_refs = c.get("competing_evidence_refs")
+            existing.evidence_ref = c.get("evidence_ref")
+            existing.confidence = c.get("confidence", "M")
+            existing.conflict_id = c.get("conflict_id")
+
+def ingest_day2_conflicts(db: Session):
+    conflicts_data = [
+        {
+            "conflict_id": "CONF-005",
+            "topic": "Engineering Survey Comment Visibility vs Re-Identification Privacy",
+            "description": "In transcript T3, Deepa advocated for CEO Ananya to see survey comments directly ('numbers alone hide everything'). In email 11.eml (29 Sep 2026), Deepa explicitly refused to share engineering comments with Ananya stating the team is too small (<6 members) and advised Vikram conduct 1:1s instead. In Pulse_Survey.xlsx, comments for all teams are withheld with notice 'Not shown: team smaller than 6'.",
+            "competing_sources": "T3_Head_of_People_Call.docx (E028) VS 11.eml (E036), Pulse_Survey.xlsx (E045-E047)",
+            "proposed_interpretation": "Strict privacy-by-design policy: withhold all qualitative survey comments for teams under 6 members to protect employee confidentiality and prevent re-identification. Deepa's written refusal (11.eml) supersedes verbal call sentiment. Vikram should conduct 1:1s as suggested.",
+            "confidence": "H",
+            "what_would_change": "Documented written waiver from all team members or anonymized aggregate sentiment themes verified by third-party HR auditor.",
+            "impact_level": "HIGH",
+            "human_status": "UNRESOLVED"
+        },
+        {
+            "conflict_id": "CONF-006",
+            "topic": "People & Talent Operations Ambiguities (T3 Call Discrepancies)",
+            "description": "T3 call transcript contains multiple unverified verbal assertions: Deepa states attrition is 'about twelve' (unit undefined: percentage, count, or target); Rohan claims 22 open roles in April and losing 6 in August with offer acceptance 'down to fifty-something' (none corroborated by the 6-row hiring tracker); Deepa notes 'one engineer I'm worried about' without naming them; manager training start date is disputed between Deepa (November-ish) and Rohan (January).",
+            "competing_sources": "T3_Head_of_People_Call.docx (E028-E030) VS Hiring_Tracker.xlsx (E037-E042)",
+            "proposed_interpretation": "Maintain ambiguous verbal transcript numbers as uncorroborated claims. Base hiring facts strictly on the Keka Hire 6-requisition tracker. Do not guess the unnamed engineer's identity or attribute Priya Nair's personal half-days to burnout/performance. Do not treat 4/5 survey responses as an attrition statistic.",
+            "confidence": "M",
+            "what_would_change": "Formal ATS historical requisition logs, official HR attrition calculation methodology, or signed HR quarterly report.",
+            "impact_level": "MEDIUM",
+            "human_status": "UNRESOLVED"
+        }
+    ]
+
+    for c in conflicts_data:
+        existing = db.query(Conflict).filter(Conflict.conflict_id == c["conflict_id"]).first()
+        if not existing:
+            con = Conflict(
+                conflict_id=c["conflict_id"],
+                topic=c["topic"],
+                description=c["description"],
+                competing_sources=c["competing_sources"],
+                proposed_interpretation=c["proposed_interpretation"],
+                confidence=c["confidence"],
+                what_would_change=c["what_would_change"],
+                impact_level=c["impact_level"],
+                human_status=c["human_status"]
+            )
+            db.add(con)
+        else:
+            existing.topic = c["topic"]
+            existing.description = c["description"]
+            existing.competing_sources = c["competing_sources"]
+            existing.proposed_interpretation = c["proposed_interpretation"]
+            existing.confidence = c["confidence"]
+            existing.what_would_change = c["what_would_change"]
+            existing.impact_level = c["impact_level"]
+            existing.human_status = c["human_status"]
+
+def ingest_day2_assumptions(db: Session):
+    assumptions_data = [
+        {
+            "assumption_id": "ASM-006",
+            "domain": "Engineering / Culture",
+            "statement": "Engineering pulse engagement drop (-0.8 to 3.1) and missing 5th response reflects acute workload pressure following August reliability issues and hiring freeze, but individual causes cannot be attributed without 1:1 feedback.",
+            "rationale": "Q2 board update and GL actuals confirm August incidents; hiring pause left team shorthanded; comments withheld to protect small team.",
+            "risk_if_wrong": "If drop was driven by compensation or management friction, 1:1s will fail to diagnose root causes."
+        },
+        {
+            "assumption_id": "ASM-007",
+            "domain": "Operations / HR",
+            "statement": "Arjun Das's request for permanent remote work remains an unapproved individual request, and Siddharth Mehta's promise to hand over the launch kit remains an unverified commitment until validated post-exit.",
+            "rationale": "No approval email exists in records for Arjun; Siddharth's last working day was 31 Oct and replacement REQ-016 is currently open in pipeline.",
+            "risk_if_wrong": "If remote was verbally agreed or launch kit was not handed over, Atlas frontend delivery and product marketing will suffer gaps."
+        }
+    ]
+
+    for a in assumptions_data:
+        existing = db.query(Assumption).filter(Assumption.assumption_id == a["assumption_id"]).first()
+        if not existing:
+            ass = Assumption(
+                assumption_id=a["assumption_id"],
+                domain=a["domain"],
+                statement=a["statement"],
+                rationale=a["rationale"],
+                risk_if_wrong=a["risk_if_wrong"]
+            )
+            db.add(ass)
+        else:
+            existing.statement = a["statement"]
+            existing.rationale = a["rationale"]
+            existing.risk_if_wrong = a["risk_if_wrong"]
+
+def ingest_day2_memories(db: Session):
+    memories_data = [
+        # VX005 Deepa Joshi (Head of People & Ops)
+        {"emp_id": "VX005", "memory_type": "grounded_fact", "content": "Culture Amp quarterly pulse showed engineering dropped from 3.9 to 3.1 and marketing dropped to 3.4. Refused to share comments to protect team anonymity.", "source_ref": "E036,E045,E046", "is_confidential": False},
+        {"emp_id": "VX005", "memory_type": "role_context", "content": "Recommended Vikram conduct 1:1s with engineering team; received remote work request from Arjun Das (pending review); received Siddharth Mehta's resignation letter.", "source_ref": "E032,E035,E036", "is_confidential": False},
+
+        # VX004 Vikram Menon (VP Engineering)
+        {"emp_id": "VX004", "memory_type": "grounded_fact", "content": "Acknowledged CFO Meera's pause on backend requisitions REQ-014 and REQ-015 in August ('Understood. We'll absorb it.').", "source_ref": "E033,E034", "is_confidential": False},
+        {"emp_id": "VX004", "memory_type": "role_context", "content": "Planning 1:1 sessions with engineering team members to discuss workload following the difficult August incident and pulse survey drop.", "source_ref": "E036", "is_confidential": False},
+
+        # VX003 Meera Iyer (CFO)
+        {"emp_id": "VX003", "memory_type": "grounded_fact", "content": "Paused engineering requisitions REQ-014 and REQ-015 on 12 Aug 2026 to prioritize cash burn until financing round closes.", "source_ref": "E033", "is_confidential": False},
+
+        # VX006 Nikhil Bose (Head of Marketing)
+        {"emp_id": "VX006", "memory_type": "grounded_fact", "content": "Received Siddharth Mehta's resignation letter on 15 Sep 2026 (last day 31 Oct); opened REQ-016 backfill requisition (7 candidates in pipeline).", "source_ref": "E032,E041", "is_confidential": False},
+        {"emp_id": "VX006", "memory_type": "role_context", "content": "Marketing pulse dropped to 3.4 in Jul-Sep; awaiting verified completion of Atlas launch kit handover.", "source_ref": "E032,E046", "is_confidential": False},
+
+        # VX009 Arjun Das (Senior Frontend Engineer)
+        {"emp_id": "VX009", "memory_type": "grounded_fact", "content": "Sent email on 18 Sep 2026 to Deepa requesting permanent remote work from Pune with monthly Bengaluru visits; awaiting formal company response.", "source_ref": "E035", "is_confidential": False},
+    ]
+
+    for m in memories_data:
+        existing = db.query(AgentMemory).filter(
+            AgentMemory.emp_id == m["emp_id"],
+            AgentMemory.content == m["content"]
+        ).first()
+        if not existing:
+            mem = AgentMemory(
+                emp_id=m["emp_id"],
+                memory_type=m["memory_type"],
+                content=m["content"],
+                source_ref=m.get("source_ref"),
+                is_confidential=m.get("is_confidential", False)
+            )
+            db.add(mem)
+
+def seed_day2_data(db: Session):
+    source_map = ingest_day2_sources(db)
+    ingest_day2_evidence(db, source_map)
+    ingest_day2_claims(db, source_map)
+    ingest_day2_conflicts(db)
+    ingest_day2_assumptions(db)
+    ingest_day2_memories(db)
+    db.commit()

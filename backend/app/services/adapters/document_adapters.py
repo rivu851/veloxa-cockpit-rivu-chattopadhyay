@@ -78,6 +78,56 @@ class TranscriptAdapter(BaseSourceAdapter):
                     "confidence": "M"
                 }
             ]
+        elif self.file_name == "T3_Head_of_People_Call.docx":
+            return [
+                {
+                    "ref": "E028",
+                    "sheet_or_page": "Transcript",
+                    "row_or_line": "Summary",
+                    "fact_text": "Deepa says attrition is 'about twelve, which is normal for Bangalore' (unclear if this is a percentage, a headcount, or a target); pulse surveys run quarterly on 'Cult Amp'; engineering scores 'dipped in the July round'; and she wants Ananya to see survey comments directly ('numbers alone hide everything').",
+                    "entities_named": "Deepa J., Ananya R.",
+                    "date_as_written": "People Call",
+                    "record_date": datetime.datetime(2026, 11, 3),
+                    "effective_date": datetime.datetime(2026, 11, 3),
+                    "confidence": "M"
+                },
+                {
+                    "ref": "E029",
+                    "sheet_or_page": "Transcript",
+                    "row_or_line": "Key points",
+                    "fact_text": "HR team consists of Deepa, Rohan on hiring, and Lakshmi as HRBP ('she handles exits'). Rohan says there were 'twenty-two open roles in April' and 'we lost six of them in August'; offer acceptance is 'down to fifty-something'; hiring runs on 'Liver' and HR records on 'Kekka'.",
+                    "entities_named": "Deepa, Rohan, Lakshmi",
+                    "date_as_written": "People Call",
+                    "record_date": datetime.datetime(2026, 11, 3),
+                    "effective_date": datetime.datetime(2026, 11, 3),
+                    "confidence": "M"
+                },
+                {
+                    "ref": "E030",
+                    "sheet_or_page": "Transcript",
+                    "row_or_line": "Key points",
+                    "fact_text": "Exit interviews: 'most of them say workload'. Deepa mentions 'Sid from marketing' has put in his papers. Deepa says there is 'one engineer I'm worried about' but will not name them on the call. Manager training started 'after Diwali, so November-ish' (Rohan says 'January').",
+                    "entities_named": "Deepa, Rohan, Sid from marketing",
+                    "date_as_written": "People Call",
+                    "record_date": datetime.datetime(2026, 11, 3),
+                    "effective_date": datetime.datetime(2026, 11, 3),
+                    "confidence": "M"
+                }
+            ]
+        elif self.file_name == "T6a_CEO_Voice_Note.docx":
+            return [
+                {
+                    "ref": "E031",
+                    "sheet_or_page": "Voice Note",
+                    "row_or_line": "Audio transcript",
+                    "fact_text": "CEO Ananya Rao requests: 'Hi, quick one. I won't type questions every morning, na. When I open it, it should just tell me what to worry about. Top three. Okay, bye.'",
+                    "entities_named": "Ananya Rao",
+                    "date_as_written": "Voice Note T6a",
+                    "record_date": datetime.datetime(2026, 11, 17, 8, 30),
+                    "effective_date": datetime.datetime(2026, 11, 17),
+                    "confidence": "H"
+                }
+            ]
         return []
 
 class BoardUpdateAdapter(BaseSourceAdapter):
@@ -278,6 +328,96 @@ class EmailAdapter(BaseSourceAdapter):
                     "confidence": "H"
                 }
             ]
+        elif self.file_name == "06.eml":
+            return [
+                {
+                    "ref": "E033",
+                    "sheet_or_page": "Email",
+                    "row_or_line": "Headers & Body",
+                    "fact_text": "CFO Meera Iyer emailed Vikram Menon (cc Ananya Rao, Rohan Banerjee) on 12 Aug 2026: 'Pausing REQ-014 and REQ-015 until the round closes. Burn is the priority this quarter.'",
+                    "entities_named": "Meera Iyer, Vikram Menon, Ananya Rao, Rohan Banerjee",
+                    "date_as_written": "Wed, 12 Aug 2026 10:12:00 +0530",
+                    "record_date": datetime.datetime(2026, 8, 12, 10, 12),
+                    "effective_date": datetime.datetime(2026, 8, 12),
+                    "confidence": "H"
+                }
+            ]
+        elif self.file_name == "07.eml":
+            return [
+                {
+                    "ref": "E034",
+                    "sheet_or_page": "Email",
+                    "row_or_line": "Headers & Body",
+                    "fact_text": "Vikram Menon replied to Meera Iyer on 12 Aug 2026: 'Understood. We'll absorb it.'",
+                    "entities_named": "Vikram Menon, Meera Iyer",
+                    "date_as_written": "Wed, 12 Aug 2026 11:48:00 +0530",
+                    "record_date": datetime.datetime(2026, 8, 12, 11, 48),
+                    "effective_date": datetime.datetime(2026, 8, 12),
+                    "confidence": "H"
+                }
+            ]
+        elif self.file_name == "10.eml":
+            return [
+                {
+                    "ref": "E035",
+                    "sheet_or_page": "Email",
+                    "row_or_line": "Headers & Body",
+                    "fact_text": "Arjun Das emailed Deepa Joshi on 18 Sep 2026 requesting to make remote from Pune permanent with offers to visit Bengaluru once a month; no approval or policy change is documented in records.",
+                    "entities_named": "Arjun Das, Deepa Joshi",
+                    "date_as_written": "Fri, 18 Sep 2026 12:00:00 +0530",
+                    "record_date": datetime.datetime(2026, 9, 18, 12, 0),
+                    "effective_date": datetime.datetime(2026, 9, 18),
+                    "confidence": "H"
+                }
+            ]
+        elif self.file_name == "11.eml":
+            return [
+                {
+                    "ref": "E036",
+                    "sheet_or_page": "Email",
+                    "row_or_line": "Headers & Body",
+                    "fact_text": "Deepa Joshi emailed Ananya Rao on 29 Sep 2026: 'Ananya, engineering pulse dropped this quarter. The team is too small for me to share comments. I'd suggest Vikram does 1:1s this week.'",
+                    "entities_named": "Deepa Joshi, Ananya Rao, Vikram Menon",
+                    "date_as_written": "Tue, 29 Sep 2026 17:30:00 +0530",
+                    "record_date": datetime.datetime(2026, 9, 29, 17, 30),
+                    "effective_date": datetime.datetime(2026, 9, 29),
+                    "confidence": "H"
+                }
+            ]
+        return []
+
+class ResignationLetterAdapter(BaseSourceAdapter):
+    def __init__(self, file_name: str, employee_name: str, date_str: str, release_day: str = "Day2", released_at: Optional[datetime.datetime] = None):
+        super().__init__(file_name, release_day, released_at)
+        self.employee_name = employee_name
+        self.date_str = date_str
+
+    def get_source_metadata(self) -> Dict[str, Any]:
+        return {
+            "file_name": self.file_name,
+            "file_type": "pdf",
+            "release_day": self.release_day,
+            "released_at": self.released_at,
+            "description": f"Formal resignation letter from {self.employee_name} dated {self.date_str}.",
+            "provenance": "HR formal personnel documentation (provenance_type='user_supplied_text_transcription').",
+            "is_confidential": False
+        }
+
+    def extract_evidence(self) -> List[Dict[str, Any]]:
+        if self.file_name == "Resignation_Letter_SM.pdf":
+            return [
+                {
+                    "ref": "E032",
+                    "sheet_or_page": "Page 1",
+                    "row_or_line": "Body",
+                    "fact_text": "Siddharth Mehta submitted resignation on 15 September 2026 to Nikhil Bose with last working day 31 October 2026; seeking clearer launch timelines where prepared work reaches customers; promises to hand over launch kit before leaving.",
+                    "entities_named": "Siddharth Mehta, Nikhil Bose",
+                    "date_as_written": "15 September 2026",
+                    "record_date": datetime.datetime(2026, 9, 15),
+                    "effective_date": datetime.datetime(2026, 10, 31),
+                    "confidence": "H"
+                }
+            ]
         return []
 
 class TabularAdapter(BaseSourceAdapter):
@@ -429,6 +569,138 @@ class TabularAdapter(BaseSourceAdapter):
                     "effective_date": datetime.datetime(2026, 3, 31),
                     "confidence": "H",
                     "is_confidential": True
+                }
+            ]
+        elif self.file_name == "Leave_Register.xlsx":
+            return [
+                {
+                    "ref": "E043",
+                    "sheet_or_page": "Leave FY",
+                    "row_or_line": "Rows 4-15, 21-22",
+                    "fact_text": "Approved company leave records Nov 2025 to Oct 2026 include A. Das (Casual 1d, Relocation 5d), K. Subramanian (Casual 1d, Exam 5d), F. Sheikh (Marriage 15d), S. Kulkarni (Sick 2d), N. Bose (Casual 1d), A. Khan (Earned 5d), R. Verma (Casual 1d), S. Mehta (Earned 5d), D. Joshi (Earned 5d), L. Pillai (Casual 1d), V. Menon (Earned 5d).",
+                    "entities_named": "Veloxa staff leave",
+                    "date_as_written": "Nov 2025 - Oct 2026",
+                    "record_date": datetime.datetime(2026, 10, 31),
+                    "effective_date": datetime.datetime(2026, 10, 31),
+                    "confidence": "H",
+                    "is_confidential": True
+                },
+                {
+                    "ref": "E044",
+                    "sheet_or_page": "Leave FY",
+                    "row_or_line": "Rows 16-20",
+                    "fact_text": "P. Nair took five approved personal half-days (PM, 0.5 days each, total 2.5 days) on 2026-09-03, 2026-09-08, 2026-09-15, 2026-09-17, and 2026-09-24, all approved by VM (Vikram Menon). Source documents do not state reason; no inference of illness, burnout, or performance is permitted.",
+                    "entities_named": "P. Nair, VM",
+                    "date_as_written": "Sep 2026",
+                    "record_date": datetime.datetime(2026, 10, 31),
+                    "effective_date": datetime.datetime(2026, 9, 24),
+                    "confidence": "H",
+                    "is_confidential": True
+                }
+            ]
+        elif self.file_name == "Hiring_Tracker.xlsx":
+            return [
+                {
+                    "ref": "E037",
+                    "sheet_or_page": "Requisitions",
+                    "row_or_line": "Row 4",
+                    "fact_text": "REQ-011: Account Executive, Sales, Hiring Manager VX002, Opened 2026-01-10, Status: Closed - not hired, Status Date: 2026-04-02, In pipeline: 0, Notes: Budget moved to marketing.",
+                    "entities_named": "REQ-011, Manoj Kumar",
+                    "date_as_written": "2026-04-02",
+                    "record_date": datetime.datetime(2026, 10, 31),
+                    "effective_date": datetime.datetime(2026, 4, 2),
+                    "confidence": "H"
+                },
+                {
+                    "ref": "E038",
+                    "sheet_or_page": "Requisitions",
+                    "row_or_line": "Row 5",
+                    "fact_text": "REQ-013: Backend Engineer, Engineering, Hiring Manager VX004, Opened 2025-12-01, Status: Filled, Status Date: 2026-01-12, In pipeline: 0, Notes: Offer accepted, joining 3-Feb.",
+                    "entities_named": "REQ-013, Vikram Menon, Rahul Verma",
+                    "date_as_written": "2026-01-12",
+                    "record_date": datetime.datetime(2026, 10, 31),
+                    "effective_date": datetime.datetime(2026, 1, 12),
+                    "confidence": "H"
+                },
+                {
+                    "ref": "E039",
+                    "sheet_or_page": "Requisitions",
+                    "row_or_line": "Row 6",
+                    "fact_text": "REQ-014: Backend Engineer (Routing), Engineering, Hiring Manager VX004, Opened 2026-05-18, Status: On hold, Status Date: 2026-08-12, In pipeline: 3, Notes: Final round 14-Aug cancelled.",
+                    "entities_named": "REQ-014, Vikram Menon",
+                    "date_as_written": "2026-08-12",
+                    "record_date": datetime.datetime(2026, 10, 31),
+                    "effective_date": datetime.datetime(2026, 8, 12),
+                    "confidence": "H"
+                },
+                {
+                    "ref": "E040",
+                    "sheet_or_page": "Requisitions",
+                    "row_or_line": "Row 7",
+                    "fact_text": "REQ-015: Backend Engineer (Platform), Engineering, Hiring Manager VX004, Opened 2026-05-18, Status: On hold, Status Date: 2026-08-12, In pipeline: 5.",
+                    "entities_named": "REQ-015, Vikram Menon",
+                    "date_as_written": "2026-08-12",
+                    "record_date": datetime.datetime(2026, 10, 31),
+                    "effective_date": datetime.datetime(2026, 8, 12),
+                    "confidence": "H"
+                },
+                {
+                    "ref": "E041",
+                    "sheet_or_page": "Requisitions",
+                    "row_or_line": "Row 8",
+                    "fact_text": "REQ-016: Product Marketing Manager, Marketing, Hiring Manager VX006, Opened 2026-09-17, Status: Open, Status Date: 2026-09-17, In pipeline: 7, Notes: Backfill.",
+                    "entities_named": "REQ-016, Nikhil Bose, Siddharth Mehta",
+                    "date_as_written": "2026-09-17",
+                    "record_date": datetime.datetime(2026, 10, 31),
+                    "effective_date": datetime.datetime(2026, 9, 17),
+                    "confidence": "H"
+                },
+                {
+                    "ref": "E042",
+                    "sheet_or_page": "Requisitions",
+                    "row_or_line": "Row 9",
+                    "fact_text": "REQ-017: Support Associate, Support, Hiring Manager VX016, Opened 2026-10-01, Status: Open, Status Date: 2026-10-01, In pipeline: 2.",
+                    "entities_named": "REQ-017, Imran Siddiqui",
+                    "date_as_written": "2026-10-01",
+                    "record_date": datetime.datetime(2026, 10, 31),
+                    "effective_date": datetime.datetime(2026, 10, 1),
+                    "confidence": "H"
+                }
+            ]
+        elif self.file_name == "Pulse_Survey.xlsx":
+            return [
+                {
+                    "ref": "E045",
+                    "sheet_or_page": "Pulse by team",
+                    "row_or_line": "Rows 4-7",
+                    "fact_text": "Engineering pulse scores on 1-5 scale: Oct-Dec 2025: 4.0 (size 5, 5 responses); Jan-Mar 2026: 4.0 (size 5, 5 responses); Apr-Jun 2026: 3.9 (size 5, 5 responses); Jul-Sep 2026: 3.1 (size 5, 4 responses; drop of -0.8). Comments: Not shown: team smaller than 6.",
+                    "entities_named": "Engineering Team, Culture Amp",
+                    "date_as_written": "Jul-Sep 2026",
+                    "record_date": datetime.datetime(2026, 10, 1),
+                    "effective_date": datetime.datetime(2026, 9, 30),
+                    "confidence": "H"
+                },
+                {
+                    "ref": "E046",
+                    "sheet_or_page": "Pulse by team",
+                    "row_or_line": "Rows 16-19",
+                    "fact_text": "Marketing pulse scores on 1-5 scale: Oct-Dec 2025: 3.9; Jan-Mar 2026: 3.9; Apr-Jun 2026: 3.8; Jul-Sep 2026: 3.4 (size 3, 3 responses; drop of -0.4). Comments: Not shown: team smaller than 6.",
+                    "entities_named": "Marketing Team, Culture Amp",
+                    "date_as_written": "Jul-Sep 2026",
+                    "record_date": datetime.datetime(2026, 10, 1),
+                    "effective_date": datetime.datetime(2026, 9, 30),
+                    "confidence": "H"
+                },
+                {
+                    "ref": "E047",
+                    "sheet_or_page": "Pulse by team",
+                    "row_or_line": "Rows 8-15, 20-27",
+                    "fact_text": "Quarterly pulse scores across other teams (Apr-Jun to Jul-Sep 2026): Finance 3.8 to 3.9 (+0.1, size 3); People & Ops 4.0 to 4.1 (+0.1, size 3); Sales 3.9 to 3.8 (-0.1, size 2); Support 4.1 to 4.0 (-0.1, size 2). All comments withheld because team sizes are smaller than 6.",
+                    "entities_named": "Finance, People & Ops, Sales, Support Teams, Culture Amp",
+                    "date_as_written": "Jul-Sep 2026",
+                    "record_date": datetime.datetime(2026, 10, 1),
+                    "effective_date": datetime.datetime(2026, 9, 30),
+                    "confidence": "H"
                 }
             ]
         return []

@@ -5,6 +5,7 @@ from backend.app.services.adapters.document_adapters import (
     BoardUpdateAdapter,
     EmailAdapter,
     SpreadsheetAdapter,
+    ResignationLetterAdapter,
 )
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "BoardUpdateAdapter",
     "EmailAdapter",
     "SpreadsheetAdapter",
+    "ResignationLetterAdapter",
 ]

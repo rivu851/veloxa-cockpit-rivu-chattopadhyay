@@ -152,7 +152,130 @@
 
 ---
 
-## T6a Executive Voice Note Decision Record
+## Conflict CONF-007: On-Call Rota Alias & SRE Contractor Identity: Sneha vs Snehal vs S. Patil
+
+### 1. Competing Sources
+- **On-Call Rota:** `OnCall_Rota.xlsx` (Sheet On-call, Rows 4-20)  
+  *Entries:* Weeks 1–6 (2026-07-06 through 2026-08-10): Primary is strictly `Sneha` with Secondary alternating `Arjun` and `Priya`. Starting week of `2026-08-17`, `Snehal` appears as Primary (Secondary: `Sneha`); thereafter `Sneha` and `Snehal` alternate Primary and Secondary weekly through `2026-10-26`.
+- **PagerDuty Incident Export:** `Incidents_Aug-Oct_2026.xlsx` (Sheet Incidents)  
+  *Entries:* Early August incidents handled by `Sneha` (`INC-201`, `INC-203`, `INC-204`, `INC-205`); `Snehal` responded to `INC-206` (27 Aug), `INC-207` (5 Sep), `INC-209` (28 Sep), and `INC-211` (21 Oct).
+- **Vendor Retainer Invoice:** `Invoice_PIS-114.pdf` (01/10/2026, Patil Infra Services, Baner Road, Pune)  
+  *Billing:* "On-call SRE support, S. Patil, September 2026 (monthly retainer) Rs. 1,20,000 + IGST @ 18% Rs. 21,600 = Total Rs. 1,41,600." Note confirms: *"Previous invoice PIS-108 (18 to 31 Aug, pro rata) settled."*
+- **SRE Email Escalation:** `08.eml` (Mon, 24 Aug 2026 09:05 IST)  
+  *Sneha Kulkarni to Vikram Menon:* *"Third SEV1 this month. I'm pausing the Atlas perf tickets to stabilise routing-api. The contractor starts on the rota this week."*
+- **Verbal Transcript Statement:** `T5_VP_Engineering_Call.docx` (P4, P6)  
+  *Vikram Menon assertion:* *"Snehal on SRE and on-call... Mentions Sneha once later; unclear if same person."*
+
+### 2. Human Conflict Decision (Competing Hypotheses & Roster Integrity)
+- **Classification:** **COMPETING HYPOTHESES MAINTAINED AS UNRESOLVED (`CONF-007`)**.
+- **Assessment of Competing Hypotheses:**
+  - **Hypothesis A (Most Grounded):** *Snehal is contractor S. Patil* from Patil Infra Services, engaged on pro-rata retainer starting 18 August (`PIS-108`), joining the on-call rota the week of 17/24 August (`08.eml`), and continuing on monthly retainer (`PIS-114`) to provide critical SRE relief following three August SEV1s.
+  - **Hypothesis B:** *Snehal is an informal tool alias or phonetic variant* for full-time Site Reliability Engineer Sneha Kulkarni (`VX012`).
+  - **Hypothesis C:** *Snehal is a separate unrecorded full-time engineer* omitted from Keka HRMS.
+- **Negative Constraints:**
+  - Do **not** merge Sneha Kulkarni and Snehal into one identity, or assert Snehal = S. Patil as verified fact without primary IAM/SOW documentation.
+  - Do **not** expand the 14-person grounded agent cohort with an unverified 15th agent persona.
+- **Impact on Cockpit Logic:** Cockpit presents the competing evidence and timeline, flags `CONF-007`, and maintains Sneha Kulkarni (`VX012`) as the sole grounded SRE agent persona.
+- **Confidence:** **MEDIUM**
+- **What Would Change Conclusion:** Executed contractor Statement of Work (SOW) naming S. Patil, Okta/AWS IAM identity logs, or signed HR contractor master.
+- **Human Decision Status:** **`UNRESOLVED`** (Maintained as open competing hypotheses pending formal verification).
+
+---
+
+## Conflict CONF-008: Atlas GA Target Date: Jira Version Record vs Transcript T5 Perception
+
+### 1. Competing Sources
+- **Jira Project Version Record:** `Jira_Export_ATLAS.xlsx` (Sheet Versions, Row 2)  
+  *Authoritative Changelog:* Version `Atlas GA`, Release Date `2026-12-15`, Original Release Date `2026-09-15`, Last Changed `2026-09-02`, Changed By `vikram`.
+- **Engineering Requisition Plan:** `04.eml` (Tue, 02 Jun 2026 09:30 IST)  
+  *Vikram Menon to Ananya Rao:* *"Atlas plan: Priya leads the core engine and re-routing, Rahul on the API, Arjun on the UI, Sneha on hardening. 15 Sep GA is achievable if the two backend hires land by July."*
+- **Verbal Transcript Statement:** `T5_VP_Engineering_Call.docx` (MeetNotes AI summary, 31 Oct 2026)  
+  *Vikram Menon assertion:* Claims Atlas v3 is *"on track, maybe a couple of weeks of buffer needed"* and the board date is *"still September-ish"*.
+
+### 2. Human Conflict Decision (Engineering System Baseline vs Verbal Optimism)
+- **Authoritative Operational Schedule:** Prefer the **Jira project ATLAS version export (`2026-12-15`)** as the recorded authoritative engineering schedule state.
+- **Treatment of Verbal Claims:** Vikram's statement of *"still September-ish"* is cataloged as an **unaligned executive perception** or optimistic conversational framing, not a scheduled or achieved production release.
+- **Causality Plurality Assessment:** The shift from 15-Sep to 15-Dec was driven by compound factors: (1) Paused backend hiring (`REQ-014`/`REQ-015` frozen on 12 Aug, `06.eml`); (2) Three SEV1 incidents in August (`E053`); (3) Pausing of performance hardening tickets (`ATLAS-5` at only 14% completion, `08.eml`, `E061`).
+- **Impact on Cockpit Logic:** Executive queries return 2026-12-15 as the recorded GA target, cite `E051`, and trigger conflict alert `CONF-008` citing Vikram's T5 statement.
+- **Confidence:** **HIGH**
+- **What Would Change Conclusion:** Subsequent sprint release commit or an approved Q3 board deck with a different ratified release date.
+- **Human Decision Status:** **`PROPOSED FOR RATIFICATION / VERBAL DISCREPANCY UNRESOLVED`** (Jira system record authoritative for engineering schedule).
+
+---
+
+## Conflict CONF-009: Marketing Spend "One Point Eight" & Summit Overrun vs Verified Financial Records
+
+### 1. Competing Sources
+- **Verbal Transcript Statement:** `T4_Head_of_Marketing_Call.docx` (MeetNotes AI summary, 31 Oct 2026)  
+  *Nikhil Bose assertion:* Asserts total marketing spend for the half was *"one point eight by his numbers"*, notes that finance *"counts things differently"*, and admits the September logistics summit budget *"went a little over, nothing crazy"*. Claims the summit was *"our best quarter ever for pipeline"* while dismissing Sales Lead Manoj's feedback that summit leads were cold.
+- **Financial General Ledger:** `GL_Export_Apr-Sep_2026.xlsx` (Zoho Books, Apr to Sep 2026)  
+  *Disbursements:* Contains specific line items for advertising (Google Ads, LinkedIn) and summit venue/production expenses, but provides no consolidated Rs. 1.8 Cr or Rs. 1.8 L total.
+- **Board Updates:** `Board_Update_Apr-Jun_2026.pdf` & `Board_Update_Jul-Sep_2026.pdf`  
+  *Financial Reporting:* Highlights overall monthly burn (Rs. 44–46 L) and recurring ARR without separating a discrete marketing H1 total.
+
+### 2. Human Conflict Decision (Unverified Marketing Metrics)
+- **Classification:** **UNVERIFIED MARKETING PERCEPTION (`CONF-009`)**.
+- **Assessment of Uncertainty:** The "one point eight" claim lacks explicit currency units (Lakhs vs Crores) and verified reconciliation against Zoho Books GL cost centres. Pipeline claims lack CRM conversion backing.
+- **Negative Constraints:**
+  - Do **not** invent currency units (do not assume Rs. 1.8 Crore or Rs. 1.8 Lakhs).
+  - Do **not** force mathematical reconciliation against GL advertising line items without an authoritative marketing accounting schedule.
+  - Do **not** assert that summit leads were objectively high quality or cold as established fact.
+- **Impact on Cockpit Logic:** Cockpit quotes Nikhil's statement verbatim with an explicit uncertainty warning, flags `CONF-009`, and cites `E048`.
+- **Confidence:** **LOW (for verbal claim)** / **HIGH (for GL records)**
+- **What Would Change Conclusion:** Signed marketing budget variance report from CFO Meera Iyer or FP&A Manager Karthik Subramanian, or verified HubSpot lead-to-opportunity pipeline export.
+- **Human Decision Status:** **`UNRESOLVED`** (Maintained as unverified verbal claim).
+
+---
+
+## Conflict CONF-010: Atlas Launch Kit Preparation vs Verified Handover & Website Publishing Status
+
+### 1. Competing Sources
+- **Product Marketing Document:** `Atlas_Launch_Kit_v1.pdf` (Owner: Sid, 21 Jul 2026)  
+  *Asset Status Register:*
+  - Launch deck (sales): `Ready`
+  - Website page: `Ready, unpublished`
+  - Customer email sequence (3): `Ready`
+  - Press note: `Draft`
+  - Launch date: `TBC with engineering (planned 22 Sep)`
+- **Verbal Transcript Statement:** `T4_Head_of_Marketing_Call.docx` (P6)  
+  *Nikhil Bose assertion:* Claims Sid's *"v3 launch kit has been ready since July, just waiting on engineering"*.
+- **Executive Correspondence:** `05.eml` (Wed, 22 Jul 2026 18:05 IST)  
+  *Siddharth Mehta to Nikhil Bose & Vikram Menon:* *"Launch kit is done (deck, page, emails). Just need a date from engineering."*
+- **Offboarding Records:** `Resignation_Letter_SM.pdf` & `Hiring_Tracker.xlsx`  
+  *Exit Context:* Sid Mehta exited on 31 Oct 2026; his promise to hand over materials remains an exit commitment; backfill `REQ-016` remains open with 7 pipeline candidates.
+
+### 2. Human Conflict Decision (Asset Readiness vs Publication & Operational Handover)
+- **Authoritative Operational Distinction:** Distinguish between **asset preparation**, **public publishing**, and **verified operational handover**:
+  1. *Preparation:* Marketing assets (sales deck, website copy, 3 email sequences) were drafted by July 2026.
+  2. *Publishing:* The website page is explicitly **Ready, unpublished** and the press release is in **Draft** status awaiting engineering GA.
+  3. *Handover:* With Siddharth Mehta having exited on 31 October and backfill `REQ-016` open, handover to an active full-time owner remains unverified post-exit.
+- **Impact on Cockpit Logic:** Queries regarding launch readiness confirm asset preparation but clarify that the website is unpublished and press note draft, cite `E055` and `E058`, and flag `CONF-010`.
+- **Confidence:** **HIGH**
+- **What Would Change Conclusion:** Live website publication verification, CMS publishing audit log, or signed handover acknowledgement from Nikhil Bose.
+- **Human Decision Status:** **`RESOLVED WITH DISTINCTIONS`** (Grounded in launch kit asset status table).
+
+---
+
+## T6b Executive Voice Note Decision Record
+
+### 1. Source Context
+- **Source:** `T6b_CEO_Voice_Note.docx` (`E050`) (Auto-transcribed WhatsApp voice note forwarded by Ananya's assistant)  
+- **Transcription Text:** *"So, marketing will report to the new CRO from next month. Or the month after, still finalising. Make sure the thing doesn't break when we move people around."*  
+- **Candidate Governance Status:** **`PROPOSED: ACCEPT WITH GUARDRAILS (Awaiting Human Approval)`**
+
+### 2. Decision & Scope Analysis
+- **Decision:** **ACCEPT WITH GUARDRAILS (NOT AN IMMEDIATE FORCED REORGANIZATION)**  
+- **What Was Accepted:**
+  - Implemented an effective-dated, reversible organizational reporting structure (`OrgReportingLine`) tracking person IDs, roles, reporting targets, effective periods, and governance status (`active` vs `proposed`).
+  - Modeled the Chief Revenue Officer (CRO) as an unfilled organizational position without fabricating an unrecorded employee.
+  - Delivered an interactive Organizational Simulation endpoint (`GET /api/org/simulation`) allowing executives to preview the reporting hierarchy if marketing reports to the CRO.
+  - Preserved access permissions by explicit role and person ID, ensuring changes in reporting titles do not compromise security or data governance.
+- **What Was Refused / Bound by Policy:**
+  - Refused immediate forced reassignment of Nikhil Bose's active manager to CRO prior to verified hiring records and confirmed effective dates.
+  - Refused to alter historical memory attribution, employee identity records, or earlier approved governance decisions.
+  - Refused to expand the 14-person grounded agent cohort with an invented CRO persona.
+- **Implementation Verification:** Full test coverage in `backend/tests/test_day3.py` verifying proposed line status, dual-mode simulation, and unfinalized guardrails.
+
 
 ### 1. Source Context
 - **Source:** `T6a_CEO_Voice_Note.docx` (Auto-transcribed WhatsApp voice note forwarded by Ananya's assistant)  

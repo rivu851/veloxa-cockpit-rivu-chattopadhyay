@@ -6,6 +6,7 @@
 **Public Repository:** [https://github.com/rivu851/veloxa-cockpit-rivu-chattopadhyay](https://github.com/rivu851/veloxa-cockpit-rivu-chattopadhyay)  
 **Day 1 Release Milestone:** Mon 16 Nov 2026 by 23:59 IST (Architecture & Baseline Scaffold)  
 **Day 2 Release Milestone:** Tue 17 Nov 2026 by 23:59 IST (Day 2 Source Ingestion & T6a Executive Response)  
+**Day 3 Release Milestone:** Wed 18 Nov 2026 by 10:00 IST (Day 3 Ingestion, T6b Governance Response & Cockpit Extensions)  
 
 ---
 

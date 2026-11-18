@@ -38,6 +38,16 @@ def test_day3_temporal_denial_095959():
     assert "Temporal boundary" in data["answer"] or "not available" in data["answer"] or "cannot be accessed" in data["answer"]
 
 
+@pytest.mark.parametrize("path", [
+    "/api/engineering-overview",
+    "/api/marketing-overview",
+    "/api/org/simulation",
+])
+def test_day3_overviews_temporal_denial(path):
+    response = client.get(path, params={"as_of": "2026-11-18T09:59:59+05:30"})
+    assert response.status_code == 423
+
+
 def test_day3_temporal_access_100000():
     """Queries at or after 10:00 AM IST must succeed and cite Day 3 evidence."""
     response = client.post("/api/ask", json={
@@ -299,6 +309,22 @@ def test_org_simulation_endpoint():
     assert mkt_sim["reports_to_role"] == "CRO"
     assert mkt_sim["status"] == "proposed"
     assert mkt_sim["is_unfilled_role"] is True
+
+
+def test_t6b_future_activation_requires_confirmation():
+    """Approved implementation may simulate future reporting, but no proposed line has an effective activation date."""
+    db = SessionLocal()
+    proposed = db.query(OrgReportingLine).filter(
+        OrgReportingLine.status == "proposed",
+        OrgReportingLine.department == "Marketing"
+    ).all()
+    db.close()
+
+    assert len(proposed) == 1
+    assert proposed[0].valid_from is None
+    assert proposed[0].valid_to is None
+    assert proposed[0].reports_to_person_id is None
+    assert "T6b" in (proposed[0].source_ref or "")
 
 
 def test_immutable_14_agent_roster():

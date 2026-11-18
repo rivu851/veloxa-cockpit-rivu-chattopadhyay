@@ -1193,11 +1193,35 @@ RISK_DEFINITIONS = [
         "all_evidence_refs": ["E017", "E018", "E019", "E023", "E024"],
         "summary": "Available records indicate a potential partial-month payroll overpayment for Rahul Verma in February 2026 during finance leave. While an employee query and acknowledgment are documented, final reconciliation records are pending.",
         "recommended_mitigation": "Review outstanding employee payroll queries against formal Keka payroll module records and verify pro-ration rules."
+    },
+    {
+        "risk_id": "RISK-008",
+        "title": "Atlas Revised GA and Reliability Hardening Exposure",
+        "category": "Engineering",
+        "severity": "CRITICAL",
+        "severity_weight": 100,
+        "urgency_weight": 24,
+        "required_evidence_refs": ["E051", "E053", "E061"],
+        "all_evidence_refs": ["E051", "E053", "E059", "E061"],
+        "summary": "The Jira system record revises Atlas GA from 15 September to 15 December 2026, while three August SEV1 incidents and 14 percent completion of performance/hardening epic ATLAS-5 substantiate delivery reliability risk.",
+        "recommended_mitigation": "Maintain Jira as the recorded schedule baseline, review the hardening backlog, and publish only confirmed revised milestones."
+    },
+    {
+        "risk_id": "RISK-009",
+        "title": "On-Call Identity and Contractor Coverage Ambiguity",
+        "category": "Operations",
+        "severity": "HIGH",
+        "severity_weight": 75,
+        "urgency_weight": 12,
+        "required_evidence_refs": ["E053", "E054", "E056"],
+        "all_evidence_refs": ["E053", "E054", "E056", "E059"],
+        "summary": "Rota aliases, incident responder names, and a contractor invoice leave the relationship among Sneha, Snehal and S. Patil unresolved.",
+        "recommended_mitigation": "Obtain explicit contractor identity or IAM evidence before merging identities or assigning formal employee responsibilities."
     }
 ]
 
 def get_ranked_risks(db: Session, as_of: Optional[str] = None) -> RiskListResponse:
-    as_of_str = as_of or "Day2_2026-11-17T10:00:00+05:30"
+    as_of_str = as_of or "Day3_2026-11-18T10:00:00+05:30"
     as_of_dt = parse_as_of_date(as_of_str)
 
     active_risks = []
@@ -1526,6 +1550,11 @@ def chat_agent(db: Session, emp_id: str, message: str, as_of: Optional[str] = No
 def get_engineering_overview(db: Session, as_of: Optional[str] = None) -> EngineeringOverviewResponse:
     as_of_str = as_of or "Day3_2026-11-18T10:00:00+05:30"
     as_of_dt = parse_as_of_date(as_of_str)
+    if as_of_dt and as_of_dt < DAY3_RELEASE_TIME:
+        raise HTTPException(
+            status_code=423,
+            detail="Temporal boundary violation. Engineering Day 3 snapshots are unavailable before 2026-11-18T10:00:00+05:30."
+        )
 
     # 1. Jira Version
     ver = db.query(JiraVersion).first()
@@ -1731,6 +1760,12 @@ def get_engineering_overview(db: Session, as_of: Optional[str] = None) -> Engine
 
 def get_marketing_overview(db: Session, as_of: Optional[str] = None) -> MarketingOverviewResponse:
     as_of_str = as_of or "Day3_2026-11-18T10:00:00+05:30"
+    as_of_dt = parse_as_of_date(as_of_str)
+    if as_of_dt and as_of_dt < DAY3_RELEASE_TIME:
+        raise HTTPException(
+            status_code=423,
+            detail="Temporal boundary violation. Marketing Day 3 snapshots are unavailable before 2026-11-18T10:00:00+05:30."
+        )
     assets_db = db.query(LaunchKitAsset).all()
     launch_kit_items = [
         LaunchKitItem(
@@ -1755,6 +1790,12 @@ def get_marketing_overview(db: Session, as_of: Optional[str] = None) -> Marketin
 
 def get_org_simulation(db: Session, mode: Optional[str] = "actual_as_of", as_of: Optional[str] = None) -> OrgSimulationResponse:
     as_of_str = as_of or "Day3_2026-11-18T10:00:00+05:30"
+    as_of_dt = parse_as_of_date(as_of_str)
+    if as_of_dt and as_of_dt < DAY3_RELEASE_TIME:
+        raise HTTPException(
+            status_code=423,
+            detail="Temporal boundary violation. Organization Day 3 structures are unavailable before 2026-11-18T10:00:00+05:30."
+        )
     is_sim = (mode == "simulated_cro")
 
     lines_db = db.query(OrgReportingLine).all()
@@ -1806,7 +1847,9 @@ def get_org_simulation(db: Session, mode: Optional[str] = "actual_as_of", as_of:
         "Person IDs are immutable (VX001..VX019); reporting lines are role-to-role relationships with effective dates.",
         "The proposed CRO relationship does not take operational effect before candidate authorization and a confirmed appointment.",
         "The unfilled CRO position does not create a speculative 20th employee or expand the 14-person agent cohort.",
-        "Access control and cockpit data permissions remain bound to explicit roles and person IDs, not unverified manager titles."
+        "Access control and cockpit data permissions remain bound to explicit roles and person IDs, not unverified manager titles.",
+        "Future-dated proposal activation requires explicit confirmation and a verified effective date; proposed simulation is reversible and separate from active operations.",
+        "The proposed CRO role is not granted access to confidential HR, finance, payroll, or employee records."
     ]
 
     return OrgSimulationResponse(

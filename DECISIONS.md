@@ -261,10 +261,12 @@
 ### 1. Source Context
 - **Source:** `T6b_CEO_Voice_Note.docx` (`E050`) (Auto-transcribed WhatsApp voice note forwarded by Ananya's assistant)  
 - **Transcription Text:** *"So, marketing will report to the new CRO from next month. Or the month after, still finalising. Make sure the thing doesn't break when we move people around."*  
-- **Candidate Governance Status:** **`PROPOSED: ACCEPT WITH GUARDRAILS (Awaiting Human Approval)`**
+- **Candidate Governance Status:** **`APPROVED WITH CONDITIONS: ACCEPT WITH GUARDRAILS`**
 
 ### 2. Decision & Scope Analysis
-- **Decision:** **ACCEPT WITH GUARDRAILS (NOT AN IMMEDIATE FORCED REORGANIZATION)**  
+- **Decision:** **APPROVE WITH CONDITIONS: ACCEPT WITH GUARDRAILS (NOT AN IMMEDIATE FORCED REORGANIZATION)**
+- **Approval Scope:** Implementation may support proposed and future-dated reporting-line mappings. The actual CRO appointment and marketing reporting change remain **UNCONFIRMED**; no CRO name or activation date is invented.
+- **Temporal and Access Conditions:** Keep active relationships unchanged until an explicit confirmed effective date and authorization. Preserve historical relationships for point-in-time queries. Do not grant proposed CRO roles access to confidential HR, finance, payroll, or employee records.
 - **What Was Accepted:**
   - Implemented an effective-dated, reversible organizational reporting structure (`OrgReportingLine`) tracking person IDs, roles, reporting targets, effective periods, and governance status (`active` vs `proposed`).
   - Modeled the Chief Revenue Officer (CRO) as an unfilled organizational position without fabricating an unrecorded employee.

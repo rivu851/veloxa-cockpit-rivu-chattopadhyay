@@ -4,7 +4,7 @@
 **From:** Implementation Lead / CXO Cockpit Architecture (Candidate: Rivu Chattopadhyay)  
 **Date:** Wednesday, 18 November 2026 (Day 3 Milestone, 11:59 PM IST Target)  
 **Reference Document:** `T6b_CEO_Voice_Note.docx` (`E050`)  
-**Decision Governance Status:** **`PROPOSED: ACCEPT WITH GUARDRAILS (Awaiting Candidate / Human Approval)`**  
+**Decision Governance Status:** **`APPROVED WITH CONDITIONS: ACCEPT WITH GUARDRAILS`**
 
 ---
 
@@ -17,8 +17,9 @@
 
 ## 2. Decision Status & Executive Summary
 
-- **Proposed Decision:** **ACCEPT WITH GUARDRAILS (NOT AN IMMEDIATE FORCED REORGANIZATION)**  
-- **Governance Classification:** **PROPOSED**, awaiting explicit human approval. No approved effective date or appointment exists.
+- **Approved Implementation Decision:** **APPROVE WITH CONDITIONS: ACCEPT WITH GUARDRAILS (NOT AN IMMEDIATE FORCED REORGANIZATION)**
+- **Governance Classification:** Approved for implementation as proposed/future-dated support. The actual CRO appointment and marketing reorganization remain **UNCONFIRMED** and inactive.
+- **Approved Conditions:** Preserve existing active relationships until an explicit, confirmed effective date; preserve point-in-time history; do not invent the CRO's name or activation date; do not grant the proposed role confidential HR, finance, payroll, or employee-record access; treat "next month or the month after" as uncertain; keep the simulation reversible and separate from active operations.
 - **Executive Rationale:**  
   The CEO's directive signals an upcoming executive organizational realignment to introduce a Chief Revenue Officer (CRO) overseeing commercial and marketing operations. However, the voice note explicitly acknowledges that timing and arrangements remain unfinalized (*"from next month. Or the month after, still finalising"*). Crucially, no CRO exists in Keka HRMS, Employee Master (`E020`), or commercial contracts; no individual is appointed; and no effective appointment date is set.
   

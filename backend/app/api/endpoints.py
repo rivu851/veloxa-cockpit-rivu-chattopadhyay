@@ -7,10 +7,12 @@ from backend.app.models.schema import Evidence, Person, Conflict, Source
 from backend.app.schemas.pydantic_models import (
     AskRequest, AskResponse, RiskListResponse, AgentSummary,
     AgentChatRequest, AgentChatResponse, EvidenceResponse, ConflictResponse,
-    HRInsightsResponse
+    HRInsightsResponse, EngineeringOverviewResponse, MarketingOverviewResponse,
+    OrgSimulationResponse
 )
 from backend.app.services.query_engine import (
-    answer_ceo_query, get_ranked_risks, chat_agent, get_hr_insights
+    answer_ceo_query, get_ranked_risks, chat_agent, get_hr_insights,
+    get_engineering_overview, get_marketing_overview, get_org_simulation
 )
 from backend.app.services.privacy import redact_sensitive_fact
 
@@ -23,7 +25,7 @@ def ask_question(request: AskRequest, db: Session = Depends(get_db)):
     Returns grounded answers with precise citations, confidence rating,
     temporal as-of compliance, and honest refusal if evidence is missing or restricted.
     """
-    return answer_ceo_query(db, request.query, request.as_of)
+    return answer_ceo_query(db, request.query, request.get_as_of())
 
 @router.get("/risks", response_model=RiskListResponse)
 def get_risks(as_of: Optional[str] = Query(None), db: Session = Depends(get_db)):
@@ -53,6 +55,7 @@ def list_agents(db: Session = Depends(get_db)):
     ]
 
 @router.post("/agents/{emp_id}/chat", response_model=AgentChatResponse)
+@router.post("/agent/{emp_id}/chat", response_model=AgentChatResponse)
 def chat_with_agent(emp_id: str, request: AgentChatRequest, db: Session = Depends(get_db)):
     """
     Direct interview with an individual employee agent.
@@ -116,3 +119,35 @@ def get_insights(as_of: Optional[str] = Query(None), db: Session = Depends(get_d
     Maintains strict privacy: comments withheld for teams < 6, leave registers protected.
     """
     return get_hr_insights(db, as_of)
+
+@router.get("/engineering-overview", response_model=EngineeringOverviewResponse)
+def engineering_overview(as_of: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    """
+    Day 3 Engineering telemetry overview.
+    Reports Jira epic progress, GA original vs revised dates, on-call rota,
+    August SEV1 incident metrics, and Git commit activity aggregates.
+    """
+    return get_engineering_overview(db, as_of)
+
+@router.get("/marketing-overview", response_model=MarketingOverviewResponse)
+def marketing_overview(as_of: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    """
+    Day 3 Marketing launch kit and campaign status.
+    Reports launch kit asset readiness (website unpublished, press note draft),
+    Siddharth Mehta handover uncertainty, spend reconciliation, and CRO reporting.
+    """
+    return get_marketing_overview(db, as_of)
+
+@router.get("/org/simulation", response_model=OrgSimulationResponse)
+def org_simulation(
+    mode: Optional[str] = Query("actual_as_of", description="'actual_as_of' or 'simulated_cro'"),
+    as_of: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Day 3 Organizational Reporting Simulation.
+    Provides a preview simulation of marketing reporting to an unfilled CRO role
+    under T6b governance guardrails, separate from active as-of reporting lines.
+    """
+    return get_org_simulation(db, mode, as_of)
+

@@ -12,6 +12,10 @@ class Citation(BaseModel):
 class AskRequest(BaseModel):
     query: str
     as_of: Optional[str] = Field(default=None, description="ISO timestamp or release day (e.g., 'Day1', '2026-11-16T10:00:00+05:30')")
+    as_of_date: Optional[str] = Field(default=None, description="Alias for as_of parameter")
+
+    def get_as_of(self) -> Optional[str]:
+        return self.as_of or self.as_of_date
 
 class AskResponse(BaseModel):
     query: str
@@ -113,3 +117,117 @@ class HRInsightsResponse(BaseModel):
     team_engagement: List[TeamEngagement]
     requisitions: List[RequisitionItem]
     privacy_safeguards: List[str]
+
+
+# ==========================================
+# DAY 3 SCHEMAS: ENGINEERING & MARKETING
+# ==========================================
+
+class JiraEpicProgress(BaseModel):
+    epic_key: str
+    name: str
+    total_issues: int
+    done_issues: int
+    in_progress_issues: int
+    todo_issues: int
+    total_points: int
+    done_points: int
+    completion_pct: float
+
+class JiraTotals(BaseModel):
+    total_issues: int
+    total_points: int
+    done_issues: int
+    done_points: int
+    in_progress_issues: int
+    in_progress_points: int
+    todo_issues: int
+    todo_points: int
+    completion_pct: float
+
+class JiraVersionInfo(BaseModel):
+    version_name: str
+    release_date: str
+    original_release_date: str
+    last_changed: str
+    changed_by: str
+    last_changed_by: str
+    is_delayed: bool = True
+
+class IncidentItem(BaseModel):
+    incident_id: str
+    severity: str
+    opened_at_utc: str
+    opened_at_ist: str
+    resolved_at_utc: str
+    resolved_at_ist: str
+    duration_minutes: float
+    service: str
+    responder: str
+
+class OnCallItem(BaseModel):
+    week_of: str
+    primary_responder: str
+    secondary_responder: str
+
+class GitAuthorStats(BaseModel):
+    author_email: str
+    display_name: str
+    commit_count: int
+    repos: List[str]
+
+class GitRepoStats(BaseModel):
+    repo_name: str
+    commit_count: int
+
+class GitTelemetry(BaseModel):
+    total_commits: int
+    by_author: List[GitAuthorStats]
+    by_repo: List[GitRepoStats]
+    priya_commits_total: int
+    priya_corp_commits: int
+    priya_noreply_commits: int
+    disclaimer: str
+
+class EngineeringOverviewResponse(BaseModel):
+    as_of: str
+    atlas_ga: JiraVersionInfo
+    jira_epics: List[JiraEpicProgress]
+    jira_totals: JiraTotals
+    august_sev1_count: int
+    total_incidents: int
+    incidents: List[IncidentItem]
+    on_call_rota: List[OnCallItem]
+    git_telemetry: GitTelemetry
+    source_freshness: str
+
+class LaunchKitItem(BaseModel):
+    asset_name: str
+    status: str
+    owner: str
+    planned_date: Optional[str] = None
+    notes: Optional[str] = None
+
+class MarketingOverviewResponse(BaseModel):
+    as_of: str
+    launch_kit_assets: List[LaunchKitItem]
+    sid_departure_notes: str
+    marketing_spend_claim: str
+    verified_spend_status: str
+    proposed_cro_reporting: str
+
+class OrgReportingLineItem(BaseModel):
+    department: str
+    role_title: str
+    reports_to_role: str
+    reports_to_person_id: Optional[str] = None
+    status: str  # active, proposed
+    is_unfilled_role: bool = False
+
+class OrgSimulationResponse(BaseModel):
+    as_of: str
+    mode: str  # "actual_as_of" or "simulated_cro"
+    reporting_lines: List[OrgReportingLineItem]
+    description: str
+    guardrails: List[str]
+

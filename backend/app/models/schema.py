@@ -164,3 +164,145 @@ class AuditLog(Base):
     query_text = Column(Text, nullable=True)
     citations_returned = Column(Text, nullable=True)
     redaction_applied = Column(Boolean, default=False)
+
+
+# ==========================================
+# DAY 3 NORMALIZED STRUCTURED DATA MODELS
+# ==========================================
+
+class GitCommit(Base):
+    """
+    Structured normalized record of a Git commit across Veloxa repositories.
+    Preserves raw commit metadata, author email, timestamp, and changed files.
+    """
+    __tablename__ = "git_commits"
+
+    sha = Column(String(50), primary_key=True)
+    author_email = Column(String(100), nullable=False, index=True)
+    author_name = Column(String(100), nullable=True)
+    committed_at = Column(DateTime, nullable=False, index=True)
+    committed_at_str = Column(String(50), nullable=False)
+    repo = Column(String(50), nullable=False, index=True)
+    message = Column(Text, nullable=False)
+    files_changed = Column(Integer, default=0)
+    released_at = Column(DateTime, nullable=False)
+
+
+class JiraIssue(Base):
+    """
+    Structured record from Jira project ATLAS export.
+    Preserves exact key, epic link, story points, status, and dates.
+    """
+    __tablename__ = "jira_issues"
+
+    key = Column(String(50), primary_key=True)
+    issue_type = Column(String(50), nullable=False)
+    summary = Column(Text, nullable=False)
+    epic_key = Column(String(50), nullable=False, index=True)
+    assignee_initials = Column(String(20), nullable=False, index=True)
+    story_points = Column(Integer, default=0)
+    status = Column(String(50), nullable=False, index=True)
+    created_date = Column(String(50), nullable=False)
+    resolved_date = Column(String(50), nullable=True)
+    fix_version = Column(String(50), nullable=True)
+    row_number = Column(Integer, nullable=True)
+    released_at = Column(DateTime, nullable=False)
+
+
+class JiraEpic(Base):
+    """
+    Jira Epic definitions for project ATLAS.
+    """
+    __tablename__ = "jira_epics"
+
+    key = Column(String(50), primary_key=True)
+    name = Column(String(100), nullable=False)
+    released_at = Column(DateTime, nullable=False)
+
+
+class JiraVersion(Base):
+    """
+    Jira Version record tracking planned vs revised release dates and audit changes.
+    """
+    __tablename__ = "jira_versions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    version_name = Column(String(100), nullable=False)
+    release_date = Column(String(50), nullable=False)
+    original_release_date = Column(String(50), nullable=False)
+    last_changed = Column(String(50), nullable=False)
+    changed_by = Column(String(50), nullable=False)
+    released_at = Column(DateTime, nullable=False)
+
+
+class Incident(Base):
+    """
+    PagerDuty incident export (Aug - Oct 2026).
+    Timestamped in UTC with explicit IST display conversion support.
+    """
+    __tablename__ = "incidents"
+
+    incident_id = Column(String(50), primary_key=True)
+    severity = Column(String(20), nullable=False, index=True)  # SEV1, SEV2, SEV3
+    opened_at_utc = Column(DateTime, nullable=False)
+    resolved_at_utc = Column(DateTime, nullable=False)
+    opened_at_str = Column(String(50), nullable=False)
+    resolved_at_str = Column(String(50), nullable=False)
+    service = Column(String(50), nullable=False, index=True)
+    responder = Column(String(50), nullable=False, index=True)
+    duration_minutes = Column(Float, nullable=True)
+    source_id = Column(Integer, ForeignKey("sources.id"), nullable=True)
+    released_at = Column(DateTime, nullable=False)
+
+
+class OnCallEntry(Base):
+    """
+    Weekly primary and secondary on-call rota from engineering wiki.
+    """
+    __tablename__ = "on_call_rota"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    week_of = Column(String(50), nullable=False, index=True)
+    primary_responder = Column(String(50), nullable=False)
+    secondary_responder = Column(String(50), nullable=False)
+    source_id = Column(Integer, ForeignKey("sources.id"), nullable=True)
+    released_at = Column(DateTime, nullable=False)
+
+
+class LaunchKitAsset(Base):
+    """
+    Atlas Launch Kit asset status from Atlas_Launch_Kit_v1.pdf.
+    """
+    __tablename__ = "launch_kit_assets"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    asset_name = Column(String(100), nullable=False)
+    status = Column(String(100), nullable=False)
+    owner = Column(String(50), nullable=False)
+    planned_date = Column(String(100), nullable=True)
+    notes = Column(Text, nullable=True)
+    released_at = Column(DateTime, nullable=False)
+
+
+class OrgReportingLine(Base):
+    """
+    Effective-dated, reversible organizational reporting structure.
+    Allows modeling proposed vs active reporting lines (e.g. T6b Marketing -> CRO)
+    without mutating employee identities, memory, or historical attribution.
+    """
+    __tablename__ = "org_reporting_lines"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    person_id = Column(String(20), nullable=True)  # e.g. VX006
+    department = Column(String(50), nullable=False)
+    role_title = Column(String(100), nullable=False)
+    reports_to_role = Column(String(100), nullable=False)  # "CEO", "CRO"
+    reports_to_person_id = Column(String(20), nullable=True)  # VX001, or None for unfilled role
+    status = Column(String(30), nullable=False, default="active")  # active, proposed, deprecated
+    valid_from = Column(DateTime, nullable=True)
+    valid_to = Column(DateTime, nullable=True)
+    source_ref = Column(String(50), nullable=True)
+    citation = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
+    released_at = Column(DateTime, nullable=False)
+

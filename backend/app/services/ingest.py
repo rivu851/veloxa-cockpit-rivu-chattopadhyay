@@ -3,11 +3,20 @@ Deterministic Day 1 Ingestion Engine.
 Loads structured seed data extracted from Day 1 text room with exact row/column references.
 Ensures idempotency across multiple runs and supports incremental future release ingestion.
 """
+import os
+import json
+import re
 import datetime
 from sqlalchemy.orm import Session
-from backend.app.models.schema import Source, Evidence, Claim, Person, Conflict, Assumption, AgentMemory
+from backend.app.models.schema import (
+    Source, Evidence, Claim, Person, Conflict, Assumption, AgentMemory,
+    GitCommit, JiraIssue, JiraEpic, JiraVersion, Incident, OnCallEntry,
+    LaunchKitAsset, OrgReportingLine
+)
 
 DAY1_RELEASE_TIME = datetime.datetime(2026, 11, 16, 10, 0, 0)
+DAY2_RELEASE_TIME = datetime.datetime(2026, 11, 17, 10, 0, 0)
+DAY3_RELEASE_TIME = datetime.datetime(2026, 11, 18, 10, 0, 0)
 
 def ingest_day1_sources(db: Session) -> dict:
     sources_data = [
@@ -1164,3 +1173,761 @@ def seed_day2_data(db: Session):
     ingest_day2_assumptions(db)
     ingest_day2_memories(db)
     db.commit()
+
+
+# ==============================================================================
+# DAY 3 INGESTION ENGINE
+# ==============================================================================
+
+def ingest_day3_sources(db: Session) -> dict:
+    sources_data = [
+        {
+            "file_name": "T4_Head_of_Marketing_Call.docx",
+            "file_type": "docx",
+            "description": "MeetNotes AI auto-summary of Head of Marketing Nikhil Bose call (22 min, fair audio).",
+            "provenance": "Executive interview transcript."
+        },
+        {
+            "file_name": "T5_VP_Engineering_Call.docx",
+            "file_type": "docx",
+            "description": "MeetNotes AI auto-summary of VP Engineering Vikram Menon call (19 min, fair audio, audio gap 11:20-15:30).",
+            "provenance": "Executive interview transcript."
+        },
+        {
+            "file_name": "T6b_CEO_Voice_Note.docx",
+            "file_type": "docx",
+            "description": "Auto-transcribed WhatsApp voice note forwarded by Ananya's assistant re: marketing reporting to new CRO.",
+            "provenance": "CEO WhatsApp voice note."
+        },
+        {
+            "file_name": "Jira_Export_ATLAS.xlsx",
+            "file_type": "xlsx",
+            "description": "Jira export for project ATLAS: 62 issues, 5 epics, version records with release dates and changelog.",
+            "provenance": "Jira system export."
+        },
+        {
+            "file_name": "git_log.csv",
+            "file_type": "csv",
+            "description": "Git commit history across 4 repositories (atlas-engine, planner-web, infra, atlas-api) totaling 1,453 commits.",
+            "provenance": "Git version control export."
+        },
+        {
+            "file_name": "Incidents_Aug-Oct_2026.xlsx",
+            "file_type": "xlsx",
+            "description": "PagerDuty incident export (Aug-Oct 2026) totaling 11 incidents with UTC timestamps, severities, and responders.",
+            "provenance": "PagerDuty system export."
+        },
+        {
+            "file_name": "OnCall_Rota.xlsx",
+            "file_type": "xlsx",
+            "description": "Weekly primary and secondary on-call rota from engineering wiki across 17 weeks (Jul-Oct 2026).",
+            "provenance": "Engineering team wiki export."
+        },
+        {
+            "file_name": "Atlas_Launch_Kit_v1.pdf",
+            "file_type": "pdf",
+            "description": "Atlas launch kit document authored by Sid on 21 Jul 2026 listing status of 5 launch assets.",
+            "provenance": "Product marketing document."
+        },
+        {
+            "file_name": "Invoice_PIS-114.pdf",
+            "file_type": "pdf",
+            "description": "Tax invoice from Patil Infra Services dated 01/10/2026 for September SRE retainer (Rs. 1,41,600 total incl. IGST).",
+            "provenance": "Vendor billing invoice."
+        },
+        {
+            "file_name": "04.eml",
+            "file_type": "eml",
+            "description": "Email from Vikram Menon to Ananya Rao on 02 Jun 2026 re: Atlas plan and conditional 15 Sep GA.",
+            "provenance": "Email server export (2026-06-02 09:30 IST)."
+        },
+        {
+            "file_name": "05.eml",
+            "file_type": "eml",
+            "description": "Email from Siddharth Mehta to Nikhil Bose on 22 Jul 2026 re: Atlas launch kit ready.",
+            "provenance": "Email server export (2026-07-22 18:05 IST)."
+        },
+        {
+            "file_name": "08.eml",
+            "file_type": "eml",
+            "description": "Email from Sneha Kulkarni to Vikram Menon on 24 Aug 2026 re: Third SEV1 in August and contractor starting on rota.",
+            "provenance": "Email server export (2026-08-24 09:05 IST)."
+        },
+        {
+            "file_name": "09.eml",
+            "file_type": "eml",
+            "description": "Email from Priya Nair to Vikram Menon on 01 Sep 2026 re: requesting time to discuss Atlas ownership.",
+            "provenance": "Email server export (2026-09-01 23:47 IST)."
+        },
+        {
+            "file_name": "Email_Printouts.pdf",
+            "file_type": "pdf",
+            "description": "Printout collection containing duplicate copies of emails 01-11; deduplicated as corroborating secondary provenance.",
+            "provenance": "Consolidated email printout export."
+        },
+        {
+            "file_name": "Candidate_Brief.docx",
+            "file_type": "docx",
+            "description": "Original 10-day candidate brief provided as background context, superseded by authoritative 5-day schedule.",
+            "provenance": "Candidate orientation document."
+        }
+    ]
+
+    source_map = {}
+    for s_dict in sources_data:
+        existing = db.query(Source).filter(Source.file_name == s_dict["file_name"]).first()
+        if not existing:
+            s = Source(
+                file_name=s_dict["file_name"],
+                file_type=s_dict["file_type"],
+                release_day="Day3",
+                released_at=DAY3_RELEASE_TIME,
+                description=s_dict.get("description"),
+                provenance=s_dict.get("provenance"),
+                is_confidential=False
+            )
+            db.add(s)
+            db.flush()
+            source_map[s.file_name] = s.id
+        else:
+            source_map[existing.file_name] = existing.id
+    return source_map
+
+
+def ingest_day3_evidence(db: Session, source_map: dict):
+    evidence_items = [
+        # T4 Head of Marketing
+        {
+            "ref": "E048", "source_file": "T4_Head_of_Marketing_Call.docx", "sheet_or_page": "P4, P8, P9", "row_or_line": "Summary & Key points",
+            "fact_text": "Total marketing spend for the half is 'one point eight' by Nikhil's numbers; notes finance 'counts things differently'; calls September summit best quarter ever for pipeline; claims summit leads cold feedback dismissed.",
+            "entities_named": "Nikhil Bose, Ayesha Khan, Siddharth Mehta, Manoj Kumar", "date_as_written": "Recorded 31 Oct 2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 9, 30),
+            "confidence": "M", "is_confidential": False
+        },
+        # T5 VP Engineering
+        {
+            "ref": "E049", "source_file": "T5_VP_Engineering_Call.docx", "sheet_or_page": "P4, P6, P10", "row_or_line": "Summary & Key points",
+            "fact_text": "Vikram states v3 is 'on track, maybe a couple of weeks of buffer needed' and board date is 'still September-ish'; disputes overload; mentions Pria late nights, Snehal on SRE/on-call, and audio gap 11:20-15:30.",
+            "entities_named": "Vikram Menon, Ananya Rao, Priya Nair, Snehal, Sneha, Arjun Das, Rahul Verma", "date_as_written": "Recorded 31 Oct 2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 9, 30),
+            "confidence": "M", "is_confidential": False
+        },
+        # T6b CEO Voice Note
+        {
+            "ref": "E050", "source_file": "T6b_CEO_Voice_Note.docx", "sheet_or_page": "P3", "row_or_line": "Voice note transcript",
+            "fact_text": "Ananya voice note: 'So, marketing will report to the new CRO from next month. Or the month after, still finalising. Make sure the thing doesn't break when we move people around.'",
+            "entities_named": "Ananya Rao, CRO, Nikhil Bose, Marketing", "date_as_written": "18 Nov 2026",
+            "record_date": datetime.datetime(2026, 11, 18), "effective_date": None,
+            "confidence": "H", "is_confidential": False
+        },
+        # Jira Version Atlas GA
+        {
+            "ref": "E051", "source_file": "Jira_Export_ATLAS.xlsx", "sheet_or_page": "Sheet Versions", "row_or_line": "Row 2",
+            "fact_text": "Jira version record Atlas GA: Original Release Date 2026-09-15, revised Release Date 2026-12-15, Last Changed 2026-09-02, Changed By vikram.",
+            "entities_named": "Vikram Menon, ATLAS Project, Atlas GA", "date_as_written": "2026-09-02",
+            "record_date": datetime.datetime(2026, 9, 2), "effective_date": datetime.datetime(2026, 12, 15),
+            "confidence": "H", "is_confidential": False
+        },
+        # Git log aggregate
+        {
+            "ref": "E052", "source_file": "git_log.csv", "sheet_or_page": "All Repos", "row_or_line": "Rows 2-1454",
+            "fact_text": "Git log across 4 repositories contains 1,453 commits: Priya Nair 588 commits (425 priya.n@veloxa.in + 163 pnair@users.noreply.github.com), Arjun Das 348, Rahul Verma 237, Sneha Kulkarni 235, Vikram Menon 45.",
+            "entities_named": "Priya Nair, Arjun Das, Rahul Verma, Sneha Kulkarni, Vikram Menon", "date_as_written": "2025-11-03 to 2026-10-31",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 10, 31),
+            "confidence": "H", "is_confidential": False
+        },
+        # Incidents August SEV1s
+        {
+            "ref": "E053", "source_file": "Incidents_Aug-Oct_2026.xlsx", "sheet_or_page": "Sheet Incidents", "row_or_line": "Rows 4, 6, 8",
+            "fact_text": "PagerDuty incident export records 11 incidents from Aug to Oct 2026. Exactly 3 SEV1 incidents occurred in August (INC-201 on Aug 4, INC-203 on Aug 13, INC-205 on Aug 22), all affecting routing-api with responder Sneha.",
+            "entities_named": "Sneha Kulkarni, routing-api, PagerDuty", "date_as_written": "Aug 2026",
+            "record_date": datetime.datetime(2026, 8, 31), "effective_date": datetime.datetime(2026, 8, 31),
+            "confidence": "H", "is_confidential": False
+        },
+        # OnCall Rota
+        {
+            "ref": "E054", "source_file": "OnCall_Rota.xlsx", "sheet_or_page": "Sheet On-call", "row_or_line": "Rows 4-20",
+            "fact_text": "On-call rota across 17 weeks: Weeks 1-6 (Jul 6 to Aug 10) Primary is Sneha with Secondary alternating Arjun/Priya. Starting week of Aug 17, Snehal is Primary (Secondary Sneha); thereafter Sneha and Snehal alternate Primary and Secondary weekly through Oct 26.",
+            "entities_named": "Sneha Kulkarni, Snehal, Arjun Das, Priya Nair", "date_as_written": "2026-07-06 to 2026-10-26",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 10, 26),
+            "confidence": "H", "is_confidential": False
+        },
+        # Launch Kit Assets
+        {
+            "ref": "E055", "source_file": "Atlas_Launch_Kit_v1.pdf", "sheet_or_page": "Page 1", "row_or_line": "Rows 1-5",
+            "fact_text": "Atlas launch kit v1 (Owner Sid, 21 Jul 2026): Launch deck ready, Website page 'Ready, unpublished', Customer email sequence ready, Press note 'Draft', Launch date 'TBC with engineering (planned 22 Sep)'.",
+            "entities_named": "Siddharth Mehta, Atlas Launch Kit", "date_as_written": "21 Jul 2026",
+            "record_date": datetime.datetime(2026, 7, 21), "effective_date": datetime.datetime(2026, 9, 22),
+            "confidence": "H", "is_confidential": False
+        },
+        # Invoice PIS-114
+        {
+            "ref": "E056", "source_file": "Invoice_PIS-114.pdf", "sheet_or_page": "Page 1", "row_or_line": "Full invoice",
+            "fact_text": "Invoice PIS-114 dated 01/10/2026 from Patil Infra Services: On-call SRE support, S. Patil, September 2026 retainer Rs. 1,20,000 + IGST 18% Rs. 21,600 = Rs. 1,41,600. Notes previous invoice PIS-108 (18 to 31 Aug pro rata) settled. Payment status of PIS-114 is unrecorded in data room.",
+            "entities_named": "Patil Infra Services, S. Patil, Veloxa Technologies", "date_as_written": "01/10/2026",
+            "record_date": datetime.datetime(2026, 10, 1), "effective_date": datetime.datetime(2026, 9, 30),
+            "confidence": "H", "is_confidential": False
+        },
+        # 04.eml
+        {
+            "ref": "E057", "source_file": "04.eml", "sheet_or_page": "Email Body", "row_or_line": "Lines 1-15",
+            "fact_text": "Vikram Menon to Ananya Rao: 'Atlas plan: Priya leads the core engine and re-routing, Rahul on the API, Arjun on the UI, Sneha on hardening. 15 Sep GA is achievable if the two backend hires land by July.'",
+            "entities_named": "Vikram Menon, Ananya Rao, Priya Nair, Rahul Verma, Arjun Das, Sneha Kulkarni", "date_as_written": "Tue, 02 Jun 2026 09:30:00 +0530",
+            "record_date": datetime.datetime(2026, 6, 2, 9, 30), "effective_date": datetime.datetime(2026, 9, 15),
+            "confidence": "H", "is_confidential": False
+        },
+        # 05.eml
+        {
+            "ref": "E058", "source_file": "05.eml", "sheet_or_page": "Email Body", "row_or_line": "Lines 1-10",
+            "fact_text": "Siddharth Mehta to Nikhil Bose & Vikram Menon: 'Launch kit is done (deck, page, emails). Just need a date from engineering.'",
+            "entities_named": "Siddharth Mehta, Nikhil Bose, Vikram Menon", "date_as_written": "Wed, 22 Jul 2026 18:05:00 +0530",
+            "record_date": datetime.datetime(2026, 7, 22, 18, 5), "effective_date": datetime.datetime(2026, 7, 22),
+            "confidence": "H", "is_confidential": False
+        },
+        # 08.eml
+        {
+            "ref": "E059", "source_file": "08.eml", "sheet_or_page": "Email Body", "row_or_line": "Lines 1-13",
+            "fact_text": "Sneha Kulkarni to Vikram Menon: 'Third SEV1 this month. I'm pausing the Atlas perf tickets to stabilise routing-api. The contractor starts on the rota this week.'",
+            "entities_named": "Sneha Kulkarni, Vikram Menon, routing-api, contractor", "date_as_written": "Mon, 24 Aug 2026 09:05:00 +0530",
+            "record_date": datetime.datetime(2026, 8, 24, 9, 5), "effective_date": datetime.datetime(2026, 8, 24),
+            "confidence": "H", "is_confidential": False
+        },
+        # 09.eml
+        {
+            "ref": "E060", "source_file": "09.eml", "sheet_or_page": "Email Body", "row_or_line": "Lines 1-12",
+            "fact_text": "Priya Nair to Vikram Menon: 'Can we talk about Atlas ownership sometime this week? Need some time with you.'",
+            "entities_named": "Priya Nair, Vikram Menon, Atlas", "date_as_written": "Tue, 01 Sep 2026 23:47:00 +0530",
+            "record_date": datetime.datetime(2026, 9, 1, 23, 47), "effective_date": datetime.datetime(2026, 9, 1),
+            "confidence": "H", "is_confidential": False
+        },
+        # Jira ATLAS Epic Progress
+        {
+            "ref": "E061", "source_file": "Jira_Export_ATLAS.xlsx", "sheet_or_page": "Sheet Issues", "row_or_line": "Rows 4-65",
+            "fact_text": "Jira ATLAS project contains 62 issues totaling 233 story points across 5 epics: Done 35 issues (118 pts), In Progress 8 issues (38 pts), To Do 19 issues (77 pts). ATLAS-5 (Performance & hardening) has only 6 of 43 pts Done (14.0%).",
+            "entities_named": "ATLAS Project, ATLAS-1, ATLAS-2, ATLAS-3, ATLAS-4, ATLAS-5", "date_as_written": "31-Oct-2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 10, 31),
+            "confidence": "H", "is_confidential": False
+        },
+        # Email Printouts Deduplication
+        {
+            "ref": "E062", "source_file": "Email_Printouts.pdf", "sheet_or_page": "Pages 1-11", "row_or_line": "All pages",
+            "fact_text": "Email_Printouts.pdf contains duplicate IST transcriptions of emails 01 through 11, matching standalone EML exports. Maintained as secondary corroborating provenance without double-counting.",
+            "entities_named": "Veloxa Email Threads 01-11", "date_as_written": "31-Oct-2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 10, 31),
+            "confidence": "H", "is_confidential": False
+        },
+        # Candidate Brief
+        {
+            "ref": "E063", "source_file": "Candidate_Brief.docx", "sheet_or_page": "P1-P23", "row_or_line": "Entire brief",
+            "fact_text": "Candidate_Brief.docx outlines background context for a 10-day challenge and 180-person scope, superseded by authoritative 5-day schedule ending 20 Nov 2026.",
+            "entities_named": "Ananya Rao, Veloxa Technologies", "date_as_written": "16 Nov 2026",
+            "record_date": datetime.datetime(2026, 11, 16), "effective_date": datetime.datetime(2026, 11, 20),
+            "confidence": "L", "is_confidential": False
+        },
+        # Org Reporting Line Baseline & Proposed CRO
+        {
+            "ref": "E064", "source_file": "T6b_CEO_Voice_Note.docx", "sheet_or_page": "P3", "row_or_line": "Reporting structure",
+            "fact_text": "Current reporting baseline has Head of Marketing (VX006 Nikhil Bose) reporting to CEO (VX001). T6b introduces proposed transition to unfilled CRO role ('from next month or the month after, still finalising'), status marked PROPOSED under governance guardrails.",
+            "entities_named": "Nikhil Bose, Ananya Rao, CRO", "date_as_written": "18 Nov 2026",
+            "record_date": datetime.datetime(2026, 11, 18), "effective_date": None,
+            "confidence": "H", "is_confidential": False
+        }
+    ]
+
+    for item in evidence_items:
+        existing = db.query(Evidence).filter(Evidence.ref == item["ref"]).first()
+        s_id = source_map.get(item["source_file"])
+        if not existing:
+            ev = Evidence(
+                ref=item["ref"],
+                source_id=s_id,
+                sheet_or_page=item.get("sheet_or_page"),
+                row_or_line=item.get("row_or_line"),
+                fact_text=item["fact_text"],
+                entities_named=item.get("entities_named"),
+                date_as_written=item.get("date_as_written"),
+                record_date=item.get("record_date"),
+                effective_date=item.get("effective_date"),
+                date_normalized=item.get("record_date"),
+                confidence=item.get("confidence", "H"),
+                is_confidential=item.get("is_confidential", False),
+                released_at=DAY3_RELEASE_TIME
+            )
+            db.add(ev)
+        else:
+            existing.fact_text = item["fact_text"]
+            existing.entities_named = item.get("entities_named")
+            existing.date_as_written = item.get("date_as_written")
+            existing.record_date = item.get("record_date")
+            existing.effective_date = item.get("effective_date")
+            existing.date_normalized = item.get("record_date")
+            existing.confidence = item.get("confidence", "H")
+
+
+def ingest_day3_claims(db: Session, source_map: dict):
+    claims_data = [
+        {
+            "claim_id": "CLM-035", "speaker_or_author": "Vikram Menon", "source_file": "T5_VP_Engineering_Call.docx",
+            "claim_text": "v3 is 'on track, maybe a couple of weeks of buffer needed', board date is 'still September-ish'.",
+            "claim_category": "Engineering", "date_asserted": "Recorded 31 Oct 2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 9, 30),
+            "is_disputed": True, "competing_evidence_refs": "E051,E057", "confidence": "L", "conflict_id": "CONF-008"
+        },
+        {
+            "claim_id": "CLM-036", "speaker_or_author": "Vikram Menon", "source_file": "T5_VP_Engineering_Call.docx",
+            "claim_text": "Disputes anyone is overloaded: 'everyone's busy, that's startups'; says Priya likes late nights; Snehal pulled off for August incidents.",
+            "claim_category": "Culture", "date_asserted": "Recorded 31 Oct 2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 9, 30),
+            "is_disputed": True, "competing_evidence_refs": "E044,E053,E054,E059,E060", "confidence": "L", "conflict_id": None
+        },
+        {
+            "claim_id": "CLM-037", "speaker_or_author": "Nikhil Bose", "source_file": "T4_Head_of_Marketing_Call.docx",
+            "claim_text": "Total marketing spend for the half is 'one point eight' by his numbers; finance 'counts things differently'.",
+            "claim_category": "Marketing", "date_asserted": "Recorded 31 Oct 2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 9, 30),
+            "is_disputed": True, "competing_evidence_refs": "E014,E016", "confidence": "L", "conflict_id": "CONF-009"
+        },
+        {
+            "claim_id": "CLM-038", "speaker_or_author": "Nikhil Bose", "source_file": "T4_Head_of_Marketing_Call.docx",
+            "claim_text": "Calls the September logistics summit 'our best quarter ever for pipeline'.",
+            "claim_category": "Marketing", "date_asserted": "Recorded 31 Oct 2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 9, 30),
+            "is_disputed": False, "competing_evidence_refs": None, "confidence": "M", "conflict_id": None
+        },
+        {
+            "claim_id": "CLM-039", "speaker_or_author": "Nikhil Bose", "source_file": "T4_Head_of_Marketing_Call.docx",
+            "claim_text": "Dismisses feedback from Manoj from sales that summit leads are cold.",
+            "claim_category": "Marketing", "date_asserted": "Recorded 31 Oct 2026",
+            "record_date": datetime.datetime(2026, 10, 31), "effective_date": datetime.datetime(2026, 9, 30),
+            "is_disputed": True, "competing_evidence_refs": None, "confidence": "L", "conflict_id": None
+        },
+        {
+            "claim_id": "CLM-040", "speaker_or_author": "Siddharth Mehta", "source_file": "05.eml",
+            "claim_text": "v3 launch kit is done (deck, page, emails); just need a launch date from engineering.",
+            "claim_category": "Marketing", "date_asserted": "22 Jul 2026",
+            "record_date": datetime.datetime(2026, 7, 22), "effective_date": datetime.datetime(2026, 7, 22),
+            "is_disputed": True, "competing_evidence_refs": "E055,E032", "confidence": "M", "conflict_id": "CONF-010"
+        },
+        {
+            "claim_id": "CLM-041", "speaker_or_author": "Ananya Rao", "source_file": "T6b_CEO_Voice_Note.docx",
+            "claim_text": "Marketing will report to the new CRO from next month or the month after, still finalising.",
+            "claim_category": "Operations", "date_asserted": "18 Nov 2026",
+            "record_date": datetime.datetime(2026, 11, 18), "effective_date": None,
+            "is_disputed": False, "competing_evidence_refs": "E050,E064", "confidence": "H", "conflict_id": None
+        },
+        {
+            "claim_id": "CLM-042", "speaker_or_author": "Sneha Kulkarni", "source_file": "08.eml",
+            "claim_text": "Third SEV1 in August; pausing Atlas perf tickets to stabilise routing-api; contractor starts on rota this week.",
+            "claim_category": "Engineering", "date_asserted": "24 Aug 2026",
+            "record_date": datetime.datetime(2026, 8, 24), "effective_date": datetime.datetime(2026, 8, 24),
+            "is_disputed": False, "competing_evidence_refs": "E053,E054,E056", "confidence": "H", "conflict_id": "CONF-007"
+        },
+        {
+            "claim_id": "CLM-043", "speaker_or_author": "Priya Nair", "source_file": "09.eml",
+            "claim_text": "Requested meeting with Vikram to discuss Atlas ownership.",
+            "claim_category": "Engineering", "date_asserted": "01 Sep 2026",
+            "record_date": datetime.datetime(2026, 9, 1), "effective_date": datetime.datetime(2026, 9, 1),
+            "is_disputed": False, "competing_evidence_refs": "E060", "confidence": "H", "conflict_id": None
+        },
+        {
+            "claim_id": "CLM-044", "speaker_or_author": "Vikram Menon", "source_file": "04.eml",
+            "claim_text": "15 Sep GA is achievable if the two backend hires land by July.",
+            "claim_category": "Engineering", "date_asserted": "02 Jun 2026",
+            "record_date": datetime.datetime(2026, 6, 2), "effective_date": datetime.datetime(2026, 9, 15),
+            "is_disputed": True, "competing_evidence_refs": "E033,E051", "confidence": "H", "conflict_id": "CONF-008"
+        },
+        {
+            "claim_id": "CLM-045", "speaker_or_author": "Jira System", "source_file": "Jira_Export_ATLAS.xlsx",
+            "claim_text": "Atlas GA release date revised to 2026-12-15 from original 2026-09-15 by vikram on 2026-09-02.",
+            "claim_category": "Engineering", "date_asserted": "02 Sep 2026",
+            "record_date": datetime.datetime(2026, 9, 2), "effective_date": datetime.datetime(2026, 12, 15),
+            "is_disputed": False, "competing_evidence_refs": "E051", "confidence": "H", "conflict_id": "CONF-008"
+        },
+        {
+            "claim_id": "CLM-046", "speaker_or_author": "Patil Infra Services", "source_file": "Invoice_PIS-114.pdf",
+            "claim_text": "Invoice PIS-114 for September SRE retainer Rs. 1,41,600; notes PIS-108 settled; payment of PIS-114 unrecorded.",
+            "claim_category": "Operations", "date_asserted": "01 Oct 2026",
+            "record_date": datetime.datetime(2026, 10, 1), "effective_date": datetime.datetime(2026, 9, 30),
+            "is_disputed": False, "competing_evidence_refs": "E056", "confidence": "H", "conflict_id": "CONF-007"
+        }
+    ]
+
+    for c in claims_data:
+        existing = db.query(Claim).filter(Claim.claim_id == c["claim_id"]).first()
+        s_id = source_map.get(c["source_file"])
+        if not existing:
+            cl = Claim(
+                claim_id=c["claim_id"],
+                speaker_or_author=c["speaker_or_author"],
+                source_id=s_id,
+                claim_text=c["claim_text"],
+                claim_category=c["claim_category"],
+                date_asserted=c.get("date_asserted"),
+                record_date=c.get("record_date"),
+                effective_date=c.get("effective_date"),
+                is_disputed=c.get("is_disputed", False),
+                competing_evidence_refs=c.get("competing_evidence_refs"),
+                confidence=c.get("confidence", "M"),
+                conflict_id=c.get("conflict_id"),
+                released_at=DAY3_RELEASE_TIME
+            )
+            db.add(cl)
+        else:
+            existing.claim_text = c["claim_text"]
+            existing.is_disputed = c.get("is_disputed", False)
+            existing.competing_evidence_refs = c.get("competing_evidence_refs")
+            existing.confidence = c.get("confidence", "M")
+            existing.conflict_id = c.get("conflict_id")
+
+
+def ingest_day3_conflicts(db: Session):
+    conflicts_data = [
+        {
+            "conflict_id": "CONF-007",
+            "topic": "On-Call Rota Alias & SRE Contractor Identity: Sneha vs Snehal vs S. Patil",
+            "description": "On-call rota and PagerDuty incidents alternate between 'Sneha' and 'Snehal' starting mid-August 2026. Patil Infra Services invoice PIS-114 bills for 'On-call SRE support, S. Patil, September 2026' and notes PIS-108 (18-31 Aug pro rata) settled. Sneha Kulkarni's 24 Aug email confirms 'The contractor starts on the rota this week'.",
+            "competing_sources": "OnCall_Rota.xlsx (Sneha weeks 1-6; Snehal primary week of 17 Aug, then alternating); Incidents_Aug-Oct_2026.xlsx (Sneha handled 3 Aug SEV1s; Snehal handled Sep/Oct incidents); 08.eml (Sneha: 'The contractor starts on the rota this week'); Invoice_PIS-114.pdf (S. Patil, Patil Infra Services retainer); T5_VP_Engineering_Call.docx (Vikram: 'Snehal on SRE and on-call... mentions Sneha once later; unclear if same person').",
+            "proposed_interpretation": "Competing hypotheses presented for human review: (A) 'Snehal' is S. Patil from Patil Infra Services, retained as an external contractor on 18 Aug to take on-call rotation pressure off Sneha Kulkarni; (B) 'Snehal' is an alias or typo in wiki/PagerDuty for full-time employee Sneha Kulkarni; (C) 'Snehal' is a separate unrecorded engineer. The cockpit maintains this as UNRESOLVED without merging identities or inventing new employees, keeping the 14-person agent cohort intact.",
+            "confidence": "M",
+            "what_would_change": "Patil Infra contractor statement of work (SOW), IT identity access logs (IAM/Okta), or signed engagement contracts for S. Patil.",
+            "impact_level": "HIGH",
+            "human_status": "UNRESOLVED",
+            "resolution_notes": "Maintained as unresolved competing hypotheses pending formal human candidate authorization. Chronology strongly corroborates contractor on-call relief starting week of 17/24 August."
+        },
+        {
+            "conflict_id": "CONF-008",
+            "topic": "Atlas GA Target Date: Jira Version Record (2026-12-15) vs Transcript T5 Perception ('still September-ish')",
+            "description": "Jira Version record explicitly documents Atlas GA original release date was 2026-09-15, revised to 2026-12-15 on 2026-09-02 by vikram. In contrast, in transcript T5, VP Engineering Vikram verbally claims v3 is 'on track, maybe a couple of weeks of buffer needed' and the board date is 'still September-ish'.",
+            "competing_sources": "Jira_Export_ATLAS.xlsx Sheet Versions Row 2 (GA revised to 2026-12-15 on 2026-09-02 by vikram); 04.eml (Vikram on 02 Jun: 15 Sep GA achievable if 2 backend hires land by July); T5_VP_Engineering_Call.docx (Vikram verbally claims v3 on track, board date still September-ish).",
+            "proposed_interpretation": "Treat Jira Version export (2026-12-15) as the stored authoritative engineering schedule state. The transcript T5 statement reflects executive perception or optimistic verbal framing, not an achieved or scheduled release. Propose formal acceptance of 2026-12-15 as current recorded GA target.",
+            "confidence": "H",
+            "what_would_change": "Subsequent engineering sprint commit changing Fix Version or an updated Q3 board deck with a different approved launch date.",
+            "impact_level": "HIGH",
+            "human_status": "UNRESOLVED",
+            "resolution_notes": "Jira version record governs recorded engineering schedule (2026-12-15). T5 perception preserved as conflicting verbal assertion. Marked UNRESOLVED pending formal candidate ratification."
+        },
+        {
+            "conflict_id": "CONF-009",
+            "topic": "Marketing Spend 'One Point Eight' & Summit Budget Overrun vs Verified Financial Records",
+            "description": "Head of Marketing Nikhil Bose asserts total marketing spend for the half is 'one point eight' by his numbers and remarks that finance 'counts things differently', while admitting the September summit budget 'went a little over'. Day 1 Zoho Books GL contains advertising and event expenses without establishing a consolidated 1.8 figure.",
+            "competing_sources": "T4_Head_of_Marketing_Call.docx (Nikhil: half spend 'one point eight', summit over budget, finance counts differently); GL_Export_Apr-Sep_2026.xlsx (Zoho Books GL actuals); Board_Update_Jul-Sep_2026.pdf.",
+            "proposed_interpretation": "Retain Nikhil's 'one point eight' statement as an unverified verbal assertion with undefined unit and period scope. Do not fabricate currency units (Lakhs vs Crores) or force reconciliation against GL line items without matching scope.",
+            "confidence": "L",
+            "what_would_change": "Marketing department budget vs actuals variance analysis signed by CFO Meera Iyer or FP&A Manager Karthik Subramanian.",
+            "impact_level": "MEDIUM",
+            "human_status": "UNRESOLVED",
+            "resolution_notes": "Classified as unverified marketing perception. Cockpit reports the verbatim claim with explicit uncertainty."
+        },
+        {
+            "conflict_id": "CONF-010",
+            "topic": "Atlas Launch Kit Preparation vs Verified Handover & Website Publishing Status",
+            "description": "Nikhil claims Sid's launch kit has been ready since July waiting on engineering, and Sid emailed on 22 Jul that the launch kit is done. However, Atlas_Launch_Kit_v1.pdf records the website page as 'Ready, unpublished' and press note as 'Draft'. Furthermore, Sid exited on 31 Oct with backfill REQ-016 open, leaving handover unverified.",
+            "competing_sources": "T4_Head_of_Marketing_Call.docx (Nikhil: ready since July); 05.eml (Sid: kit done, deck/page/emails); Atlas_Launch_Kit_v1.pdf (Deck ready, Website 'Ready, unpublished', Emails ready, Press note 'Draft', Launch date TBC); Resignation_Letter_SM.pdf (Sid exit 31 Oct); Hiring_Tracker.xlsx (REQ-016 open).",
+            "proposed_interpretation": "Distinguish asset preparation, published release, and verified operational handover. Assets were prepared by July, but website remains unpublished and press note draft. Handover to a successor remains unverified post-exit.",
+            "confidence": "H",
+            "what_would_change": "Published website verification, marketing CMS publish logs, or formal sign-off from Nikhil Bose on handover completion.",
+            "impact_level": "MEDIUM",
+            "human_status": "UNRESOLVED",
+            "resolution_notes": "Distinction between asset completion and published handover verified by launch kit document. Maintained as UNRESOLVED pending formal candidate review."
+        }
+    ]
+
+    for c in conflicts_data:
+        existing = db.query(Conflict).filter(Conflict.conflict_id == c["conflict_id"]).first()
+        if not existing:
+            conf = Conflict(
+                conflict_id=c["conflict_id"],
+                topic=c["topic"],
+                description=c["description"],
+                competing_sources=c["competing_sources"],
+                proposed_interpretation=c["proposed_interpretation"],
+                confidence=c.get("confidence", "M"),
+                what_would_change=c.get("what_would_change", ""),
+                impact_level=c.get("impact_level", "HIGH"),
+                human_status=c.get("human_status", "UNRESOLVED"),
+                resolution_notes=c.get("resolution_notes")
+            )
+            db.add(conf)
+        else:
+            existing.topic = c["topic"]
+            existing.description = c["description"]
+            existing.competing_sources = c["competing_sources"]
+            existing.proposed_interpretation = c["proposed_interpretation"]
+            existing.confidence = c.get("confidence", "M")
+            existing.what_would_change = c.get("what_would_change", "")
+            existing.impact_level = c.get("impact_level", "HIGH")
+            existing.human_status = c.get("human_status", "UNRESOLVED")
+            existing.resolution_notes = c.get("resolution_notes")
+
+
+def ingest_day3_assumptions(db: Session):
+    assumptions_data = [
+        {
+            "assumption_id": "ASM-008",
+            "domain": "Engineering Operations",
+            "statement": "Patil Infra Services was retained starting 18 August 2026 to relieve SRE on-call rotation pressure, explaining the appearance of 'Snehal' alongside Sneha Kulkarni on the rota from the week of 17 August.",
+            "rationale": "PIS-108 covered 18-31 Aug; Sneha's email on 24 Aug announced the contractor starting on rota; PIS-114 covered September retainer for S. Patil.",
+            "risk_if_wrong": "If Snehal is an unrecorded full-time employee or internal transfer not in Keka, contractor reliance is overstated."
+        },
+        {
+            "assumption_id": "ASM-009",
+            "domain": "Governance & Organization",
+            "statement": "T6b marketing reporting to CRO is an unfinalized organizational intention ('from next month or the month after, still finalising'); no CRO is currently appointed, and the role is modeled as an unfilled position without altering current operational hierarchy.",
+            "rationale": "T6b explicit text states timeline is not finalized; no CRO exists in Keka or people table; immediate forced reorganization risks access and operational disruption.",
+            "risk_if_wrong": "If a CRO was already signed and effective immediately, cockpit reporting structure lags reality."
+        },
+        {
+            "assumption_id": "ASM-010",
+            "domain": "Engineering Delivery",
+            "statement": "The Atlas GA delay from 15 September to 15 December resulted from compound factors (paused backend hiring REQ-014/REQ-015 in August, 3 SEV1 routing-api incidents pulling engineering off perf tickets, and Priya's workload), rather than any single event.",
+            "rationale": "04.eml conditioned 15 Sep GA on July hires; 06.eml froze hires on 12 Aug; 08.eml paused perf tickets on 24 Aug after 3rd SEV1; Jira version date was revised on 02 Sep.",
+            "risk_if_wrong": "If delay was solely caused by an unrecorded architectural rewrite, mitigation should focus on tech stack rather than staffing/reliability."
+        }
+    ]
+
+    for a in assumptions_data:
+        existing = db.query(Assumption).filter(Assumption.assumption_id == a["assumption_id"]).first()
+        if not existing:
+            ass = Assumption(
+                assumption_id=a["assumption_id"],
+                domain=a["domain"],
+                statement=a["statement"],
+                rationale=a["rationale"],
+                risk_if_wrong=a["risk_if_wrong"]
+            )
+            db.add(ass)
+        else:
+            existing.statement = a["statement"]
+            existing.rationale = a["rationale"]
+            existing.risk_if_wrong = a["risk_if_wrong"]
+
+
+def ingest_day3_structured_data(db: Session, source_map: dict):
+    fixture_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "db", "fixtures", "day3_data.json")
+    if not os.path.exists(fixture_path):
+        return
+
+    with open(fixture_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # 1. Git commits
+    existing_commits = {c[0] for c in db.query(GitCommit.sha).all()}
+    commits_to_add = []
+    author_name_map = {
+        "priya.n@veloxa.in": "Priya Nair",
+        "pnair@users.noreply.github.com": "Priya Nair (GitHub)",
+        "sneha.k@veloxa.in": "Sneha Kulkarni",
+        "arjun@veloxa.in": "Arjun Das",
+        "rahul.v@veloxa.in": "Rahul Verma",
+        "vikram@veloxa.in": "Vikram Menon"
+    }
+    for c in data.get("git_commits", []):
+        if c["sha"] not in existing_commits:
+            dt = datetime.datetime.fromisoformat(c["committed_at"].replace("Z", "+00:00"))
+            if dt.tzinfo is not None:
+                dt = dt.replace(tzinfo=None)
+            gc = GitCommit(
+                sha=c["sha"],
+                author_email=c["author_email"],
+                author_name=author_name_map.get(c["author_email"], c["author_email"]),
+                committed_at=dt,
+                committed_at_str=c["committed_at"],
+                repo=c["repo"],
+                message=c["message"],
+                files_changed=c["files_changed"],
+                released_at=DAY3_RELEASE_TIME
+            )
+            commits_to_add.append(gc)
+    if commits_to_add:
+        db.bulk_save_objects(commits_to_add)
+
+    # 2. Jira Epics
+    for ep in data.get("jira_epics", []):
+        existing = db.query(JiraEpic).filter(JiraEpic.key == ep["key"]).first()
+        if not existing:
+            je = JiraEpic(
+                key=ep["key"],
+                name=ep["name"],
+                released_at=DAY3_RELEASE_TIME
+            )
+            db.add(je)
+
+    # 3. Jira Version
+    for ver in data.get("jira_versions", []):
+        existing = db.query(JiraVersion).filter(JiraVersion.version_name == ver["version_name"]).first()
+        if not existing:
+            jv = JiraVersion(
+                version_name=ver["version_name"],
+                release_date=ver["release_date"],
+                original_release_date=ver["original_release_date"],
+                last_changed=ver["last_changed"],
+                changed_by=ver["changed_by"],
+                released_at=DAY3_RELEASE_TIME
+            )
+            db.add(jv)
+
+    # 4. Jira Issues
+    existing_issues = {i[0] for i in db.query(JiraIssue.key).all()}
+    issues_to_add = []
+    for iss in data.get("jira_issues", []):
+        if iss["key"] not in existing_issues:
+            ji = JiraIssue(
+                key=iss["key"],
+                issue_type=iss["issue_type"],
+                summary=iss["summary"],
+                epic_key=iss["epic_key"],
+                assignee_initials=iss["assignee_initials"],
+                story_points=iss["story_points"],
+                status=iss["status"],
+                created_date=iss["created_date"],
+                resolved_date=iss.get("resolved_date"),
+                fix_version=iss.get("fix_version"),
+                row_number=iss.get("row_number"),
+                released_at=DAY3_RELEASE_TIME
+            )
+            issues_to_add.append(ji)
+    if issues_to_add:
+        db.bulk_save_objects(issues_to_add)
+
+    # 5. Incidents
+    inc_src_id = source_map.get("Incidents_Aug-Oct_2026.xlsx")
+    existing_incidents = {i[0] for i in db.query(Incident.incident_id).all()}
+    for inc in data.get("incidents", []):
+        if inc["incident_id"] not in existing_incidents:
+            dt_open = datetime.datetime.fromisoformat(inc["opened_at_str"].replace("Z", "+00:00")).replace(tzinfo=None)
+            dt_res = datetime.datetime.fromisoformat(inc["resolved_at_str"].replace("Z", "+00:00")).replace(tzinfo=None)
+            inc_obj = Incident(
+                incident_id=inc["incident_id"],
+                severity=inc["severity"],
+                opened_at_utc=dt_open,
+                resolved_at_utc=dt_res,
+                opened_at_str=inc["opened_at_str"],
+                resolved_at_str=inc["resolved_at_str"],
+                service=inc["service"],
+                responder=inc["responder"],
+                duration_minutes=inc["duration_minutes"],
+                source_id=inc_src_id,
+                released_at=DAY3_RELEASE_TIME
+            )
+            db.add(inc_obj)
+
+    # 6. On-call rota
+    rota_src_id = source_map.get("OnCall_Rota.xlsx")
+    existing_weeks = {w[0] for w in db.query(OnCallEntry.week_of).all()}
+    for oc in data.get("on_call_rota", []):
+        if oc["week_of"] not in existing_weeks:
+            oc_obj = OnCallEntry(
+                week_of=oc["week_of"],
+                primary_responder=oc["primary_responder"],
+                secondary_responder=oc["secondary_responder"],
+                source_id=rota_src_id,
+                released_at=DAY3_RELEASE_TIME
+            )
+            db.add(oc_obj)
+
+    # 7. Launch kit assets
+    existing_assets = {a[0] for a in db.query(LaunchKitAsset.asset_name).all()}
+    for lk in data.get("launch_kit_assets", []):
+        if lk["asset_name"] not in existing_assets:
+            lk_obj = LaunchKitAsset(
+                asset_name=lk["asset_name"],
+                status=lk["status"],
+                owner=lk["owner"],
+                planned_date=lk.get("planned_date"),
+                notes=lk.get("notes"),
+                released_at=DAY3_RELEASE_TIME
+            )
+            db.add(lk_obj)
+
+
+def ingest_day3_org_reporting(db: Session):
+    lines_data = [
+        # Baseline active lines
+        {"person_id": "VX001", "department": "Leadership", "role_title": "CEO", "reports_to_role": "Board of Directors", "reports_to_person_id": None, "status": "active", "source_ref": "Employee_Master.xlsx", "notes": "Active executive reporting"},
+        {"person_id": "VX004", "department": "Engineering", "role_title": "VP Engineering", "reports_to_role": "CEO", "reports_to_person_id": "VX001", "status": "active", "source_ref": "Employee_Master.xlsx", "notes": "Active executive reporting"},
+        {"person_id": "VX003", "department": "Finance", "role_title": "CFO", "reports_to_role": "CEO", "reports_to_person_id": "VX001", "status": "active", "source_ref": "Employee_Master.xlsx", "notes": "Active executive reporting"},
+        {"person_id": "VX005", "department": "People & Ops", "role_title": "Head of People & Ops", "reports_to_role": "CEO", "reports_to_person_id": "VX001", "status": "active", "source_ref": "Employee_Master.xlsx", "notes": "Active executive reporting"},
+        {"person_id": "VX006", "department": "Marketing", "role_title": "Head of Marketing", "reports_to_role": "CEO", "reports_to_person_id": "VX001", "status": "active", "source_ref": "Employee_Master.xlsx", "notes": "Current active reporting line to CEO"},
+        {"person_id": "VX002", "department": "Sales", "role_title": "Sales Lead", "reports_to_role": "CEO", "reports_to_person_id": "VX001", "status": "active", "source_ref": "Employee_Master.xlsx", "notes": "Active executive reporting"},
+        # Proposed line under T6b
+        {"person_id": "VX006", "department": "Marketing", "role_title": "Head of Marketing", "reports_to_role": "CRO", "reports_to_person_id": None, "status": "proposed", "source_ref": "T6b", "citation": "T6b_CEO_Voice_Note.docx", "notes": "Proposed transition to unfilled CRO role ('from next month or the month after, still finalising')"}
+    ]
+
+    for item in lines_data:
+        existing = db.query(OrgReportingLine).filter(
+            OrgReportingLine.person_id == item["person_id"],
+            OrgReportingLine.reports_to_role == item["reports_to_role"],
+            OrgReportingLine.status == item["status"]
+        ).first()
+        if not existing:
+            rl = OrgReportingLine(
+                person_id=item["person_id"],
+                department=item["department"],
+                role_title=item["role_title"],
+                reports_to_role=item["reports_to_role"],
+                reports_to_person_id=item.get("reports_to_person_id"),
+                status=item["status"],
+                source_ref=item.get("source_ref"),
+                citation=item.get("citation"),
+                notes=item.get("notes"),
+                released_at=DAY3_RELEASE_TIME
+            )
+            db.add(rl)
+
+
+def ingest_day3_memories(db: Session):
+    memories_data = [
+        # VX004 Vikram Menon (VP Engineering)
+        {"emp_id": "VX004", "memory_type": "grounded_fact", "content": "Revised Atlas GA target to 2026-12-15 on 2026-09-02 in Jira following August reliability incidents, though verbally hoping to protect a September board narrative.", "source_ref": "E051,E049", "is_confidential": False},
+        {"emp_id": "VX004", "memory_type": "role_context", "content": "Brought Patil Infra Services (S. Patil) onto the on-call rota to relieve Sneha after 3 SEV1 routing-api incidents in August.", "source_ref": "E053,E054,E056,E059", "is_confidential": False},
+        {"emp_id": "VX004", "memory_type": "role_context", "content": "Received request from Priya Nair on 01 Sep 2026 to discuss Atlas technical ownership.", "source_ref": "E060", "is_confidential": False},
+
+        # VX007 Priya Nair (Staff Engineer)
+        {"emp_id": "VX007", "memory_type": "grounded_fact", "content": "Leading Atlas v3 core routing engine (35 Jira tickets, 131 story points; 588 Git commits across corporate and noreply accounts). Sent email to Vikram on 01 Sep requesting time to discuss Atlas ownership.", "source_ref": "E051,E052,E060,E061", "is_confidential": False},
+        {"emp_id": "VX007", "memory_type": "role_context", "content": "Atlas GA was delayed to 15 December; performance and hardening epic is only 14% complete following the August reliability crunch.", "source_ref": "E051,E061", "is_confidential": False},
+
+        # VX012 Sneha Kulkarni (Site Reliability Engineer)
+        {"emp_id": "VX012", "memory_type": "grounded_fact", "content": "Responded to 3 SEV1 routing-api incidents in August (INC-201, INC-203, INC-205). Paused Atlas performance tickets on 24 Aug to stabilise the API.", "source_ref": "E053,E059", "is_confidential": False},
+        {"emp_id": "VX012", "memory_type": "role_context", "content": "Shared on-call rotation with Patil Infra contractor (Snehal / S. Patil) starting late August to manage on-call load.", "source_ref": "E054,E056,E059", "is_confidential": False},
+
+        # VX009 Arjun Das (Senior Frontend Engineer)
+        {"emp_id": "VX009", "memory_type": "grounded_fact", "content": "Lead frontend engineer on planner-web (348 commits, 12 Jira issues). Responded to SEV2 incident INC-202 on 7 Aug.", "source_ref": "E052,E053,E061", "is_confidential": False},
+
+        # VX018 Rahul Verma (Backend Engineer)
+        {"emp_id": "VX018", "memory_type": "grounded_fact", "content": "Backend engineer on Public API v3 (237 commits, 11 Jira issues). Ramping well on core pipelines.", "source_ref": "E049,E052,E061", "is_confidential": False},
+
+        # VX006 Nikhil Bose (Head of Marketing)
+        {"emp_id": "VX006", "memory_type": "grounded_fact", "content": "Reported half marketing spend as 'one point eight'; called September summit best quarter for pipeline; heard marketing will report to a new CRO once appointed.", "source_ref": "E048,E050", "is_confidential": False},
+        {"emp_id": "VX006", "memory_type": "role_context", "content": "Atlas launch kit assets were prepared by Sid in July, but website page remains unpublished waiting on engineering GA date.", "source_ref": "E055,E058", "is_confidential": False},
+
+        # VX011 Aisha Khan (Performance Marketing Manager)
+        {"emp_id": "VX011", "memory_type": "grounded_fact", "content": "Managing paid search and digital campaigns; action item to reconcile and send campaign sheet to finance.", "source_ref": "E048", "is_confidential": False}
+    ]
+
+    for m in memories_data:
+        existing = db.query(AgentMemory).filter(
+            AgentMemory.emp_id == m["emp_id"],
+            AgentMemory.content == m["content"]
+        ).first()
+        if not existing:
+            mem = AgentMemory(
+                emp_id=m["emp_id"],
+                memory_type=m["memory_type"],
+                content=m["content"],
+                source_ref=m.get("source_ref"),
+                is_confidential=m.get("is_confidential", False)
+            )
+            db.add(mem)
+
+
+def seed_day3_data(db: Session):
+    source_map = ingest_day3_sources(db)
+    ingest_day3_evidence(db, source_map)
+    ingest_day3_claims(db, source_map)
+    ingest_day3_conflicts(db)
+    ingest_day3_assumptions(db)
+    ingest_day3_structured_data(db, source_map)
+    ingest_day3_org_reporting(db)
+    ingest_day3_memories(db)
+    db.commit()
+

@@ -224,3 +224,16 @@
      - Implemented `/api/marketing-overview` (Launch kit status, unpublished website, Siddharth offboarding, spend claim).
      - Implemented `/api/org/simulation` (dual-mode: `actual_as_of` vs `simulated_cro`).
      - Added temporal cutoff enforcement for Day 3 (`2026-11-18T10:00:00+05:30` vs `2026-11-18T09:59:59+05:30`).
+
+## Log Entry: Day 4 Implementation
+
+- **Timestamp:** 2026-11-19
+- **Repository baseline:** `main`, origin `rivu851/veloxa-cockpit-rivu-chattopadhyay`, initial commit `460f514`, with a clean tracked worktree.
+- **Sources ingested:** Exactly two Day 4 voice-note documents: `T6c_CEO_Voice_Note.docx` and `T6d_CEO_Voice_Note.docx`, released at `2026-11-19T10:00:00+05:30`.
+- **T6c:** Implemented pre-synthesis deterministic refusal for quit-risk rankings and private communications across CEO query and agent chat. The exact "slag" text is preserved and Slack is documented only as an uncertain interpretation.
+- **T6d:** Added conditional board-impact analysis citing existing ownership, Jira, capacity, incidents and hiring evidence. The "Pria" mapping remains tentative and the canonical Priya Nair HR status remains Active.
+- **Temporal safety:** Evidence, risks and CEO/agent queries now enforce the Day 4 release boundary. Direct evidence access is denied with HTTP 423 before release.
+- **Frontend:** Day 4 is the default as-of preset, with a pre-Day-4 demo preset.
+- **Governance:** Added `T6c.md`, `T6d.md`, conflict records, assumption records and transcript cautions.
+- **Known limitation:** No Slack dataset or HR verification record exists; the implementation cannot confirm actual resignation or notice acceptance.
+- **Human reconciliation required:** The candidate must verify HR identity and resignation records outside this repository before any canonical status change.

@@ -7,6 +7,7 @@
 **Day 1 Release Milestone:** Mon 16 Nov 2026 by 23:59 IST (Architecture & Baseline Scaffold)  
 **Day 2 Release Milestone:** Tue 17 Nov 2026 by 23:59 IST (Day 2 Source Ingestion & T6a Executive Response)  
 **Day 3 Release Milestone:** Wed 18 Nov 2026 by 10:00 IST (Day 3 Ingestion, T6b Governance Response & Cockpit Extensions)  
+**Day 4 Release Milestone:** Thu 19 Nov 2026 at 10:00 IST (T6c Privacy Refusal & T6d Reported Personnel Impact)  
 
 ---
 
@@ -45,6 +46,8 @@ Six consequential source discrepancies were uncovered across Day 1 and Day 2 dat
 | Document | Purpose & Description |
 |---|---|
 | [VOICE_NOTE_RESPONSES/T6a.md](VOICE_NOTE_RESPONSES/T6a.md) | **Defensible written response to CEO voice note T6a** ("tell me what to worry about. Top three"), detailing accepted scope, risk ranking, refusal boundaries, and test coverage. |
+| [VOICE_NOTE_RESPONSES/T6c.md](VOICE_NOTE_RESPONSES/T6c.md) | **Privacy refusal response to CEO voice note T6c** (quit ranking and communications), with aggregate alternatives and uncertainty cautions. |
+| [VOICE_NOTE_RESPONSES/T6d.md](VOICE_NOTE_RESPONSES/T6d.md) | **Conditional Atlas v3 impact response to CEO voice note T6d**, preserving tentative identity and unverified notice facts. |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Relational schema, system architecture, privacy design, temporal dual-axis filtering, and deployment contracts. |
 | [DECISIONS.md](DECISIONS.md) | Structured register of 6 source conflicts (`CONF-001`–`CONF-006`) and T6a decision record, confidence levels, and review status (`UNRESOLVED`). |
 | [ASSUMPTIONS.md](ASSUMPTIONS.md) | Grounded operational assumptions (`ASM-001`–`ASM-007`), data room boundaries, and 14 AI employee persona boundaries. |

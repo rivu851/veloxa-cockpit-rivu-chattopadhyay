@@ -20,6 +20,7 @@ The **Veloxa CXO Cockpit** is an executive decision support and governance platf
    Future release material (Day 2, Day 3, Day 4) cannot leak into historical queries.
 4. **Human-in-the-Loop Conflict Governance:** Factual discrepancies between executive verbal statements and formal board decks are cataloged as unresolved conflicting claims, without ungrounded speculation. Decisions remain `UNRESOLVED` pending explicit human confirmation.
 5. **Interviewable Grounded AI Agents:** 14+ AI employee personas are grounded strictly in organizational records (`Employee_Master.xlsx`), operating within verified knowledge boundaries.
+6. **Day 4 Surveillance Guardrails:** Day 4 adds deterministic refusals for named quit-risk rankings and private communications before answer synthesis. Reported personnel events remain conditional until verified by HR.
 
 ---
 

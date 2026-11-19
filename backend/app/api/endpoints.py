@@ -12,7 +12,8 @@ from backend.app.schemas.pydantic_models import (
 )
 from backend.app.services.query_engine import (
     answer_ceo_query, get_ranked_risks, chat_agent, get_hr_insights,
-    get_engineering_overview, get_marketing_overview, get_org_simulation
+    get_engineering_overview, get_marketing_overview, get_org_simulation,
+    parse_as_of_date, DAY4_RELEASE_TIME
 )
 from backend.app.services.privacy import redact_sensitive_fact
 
@@ -64,7 +65,7 @@ def chat_with_agent(emp_id: str, request: AgentChatRequest, db: Session = Depend
     return chat_agent(db, emp_id, request.message, request.as_of)
 
 @router.get("/evidence/{ref}", response_model=EvidenceResponse)
-def get_evidence(ref: str, db: Session = Depends(get_db)):
+def get_evidence(ref: str, as_of: Optional[str] = Query(None), db: Session = Depends(get_db)):
     """
     Detailed evidence inspector with exact source file, sheet/page, row, and text.
     Individual salary data is redacted at the service layer.
@@ -72,6 +73,9 @@ def get_evidence(ref: str, db: Session = Depends(get_db)):
     ev = db.query(Evidence).filter(Evidence.ref == ref).first()
     if not ev:
         raise HTTPException(status_code=404, detail="Evidence item not found")
+    as_of_dt = parse_as_of_date(as_of)
+    if as_of_dt and ev.released_at and ev.released_at > as_of_dt:
+        raise HTTPException(status_code=423, detail="Evidence not released at the requested as-of timestamp.")
         
     source = db.query(Source).filter(Source.id == ev.source_id).first()
     fact_text, is_redacted = redact_sensitive_fact(ev.fact_text, ev.is_confidential)
@@ -91,11 +95,14 @@ def get_evidence(ref: str, db: Session = Depends(get_db)):
     )
 
 @router.get("/conflicts", response_model=List[ConflictResponse])
-def list_conflicts(db: Session = Depends(get_db)):
+def list_conflicts(as_of: Optional[str] = Query(None), db: Session = Depends(get_db)):
     """
     Returns documented source conflicts with proposed interpretations and human review status.
     """
     conflicts = db.query(Conflict).all()
+    as_of_dt = parse_as_of_date(as_of)
+    if as_of_dt and as_of_dt < DAY4_RELEASE_TIME:
+        conflicts = [c for c in conflicts if c.conflict_id not in {"CONF-011", "CONF-012", "CONF-013", "CONF-014"}]
     return [
         ConflictResponse(
             conflict_id=c.conflict_id,

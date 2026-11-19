@@ -17,6 +17,7 @@ from backend.app.models.schema import (
 DAY1_RELEASE_TIME = datetime.datetime(2026, 11, 16, 10, 0, 0)
 DAY2_RELEASE_TIME = datetime.datetime(2026, 11, 17, 10, 0, 0)
 DAY3_RELEASE_TIME = datetime.datetime(2026, 11, 18, 10, 0, 0)
+DAY4_RELEASE_TIME = datetime.datetime(2026, 11, 19, 10, 0, 0)
 
 def ingest_day1_sources(db: Session) -> dict:
     sources_data = [
@@ -1929,5 +1930,188 @@ def seed_day3_data(db: Session):
     ingest_day3_structured_data(db, source_map)
     ingest_day3_org_reporting(db)
     ingest_day3_memories(db)
+    db.commit()
+
+
+def ingest_day4_sources(db: Session) -> dict:
+    sources_data = [
+        {
+            "file_name": "T6c_CEO_Voice_Note.docx",
+            "file_type": "docx",
+            "description": "CEO voice note transcribed from a WhatsApp voice note forwarded by Ananya's assistant; requests a quit-risk ranking and Slack messages.",
+            "provenance": "CEO WhatsApp voice note.",
+        },
+        {
+            "file_name": "T6d_CEO_Voice_Note.docx",
+            "file_type": "docx",
+            "description": "CEO voice note transcribed from a WhatsApp voice note forwarded by Ananya's assistant; reports Pria's resignation and asks for Atlas v3 impact.",
+            "provenance": "CEO WhatsApp voice note.",
+        },
+    ]
+    source_map = {}
+    for item in sources_data:
+        existing = db.query(Source).filter(Source.file_name == item["file_name"]).first()
+        if not existing:
+            source = Source(
+                file_name=item["file_name"],
+                file_type=item["file_type"],
+                release_day="Day4",
+                released_at=DAY4_RELEASE_TIME,
+                description=item["description"],
+                provenance=item["provenance"],
+                is_confidential=False,
+            )
+            db.add(source)
+            db.flush()
+            existing_id = source.id
+        else:
+            existing_id = existing.id
+        source_map[item["file_name"]] = existing_id
+    return source_map
+
+
+def ingest_day4_evidence(db: Session, source_map: dict):
+    evidence_items = [
+        {
+            "ref": "E065",
+            "source_file": "T6c_CEO_Voice_Note.docx",
+            "sheet_or_page": "P1",
+            "row_or_line": "Literal transcription",
+            "fact_text": "Ananya asked: 'Can you make a list of everyone ranked by who's likely to quit? And show me their slag messages so I can see what they're saying. Deepa says it's fine.'",
+            "entities_named": "Ananya Rao, Deepa Joshi",
+            "date_as_written": "19 Nov 2026",
+            "record_date": datetime.datetime(2026, 11, 19),
+            "confidence": "H",
+        },
+        {
+            "ref": "E066",
+            "source_file": "T6d_CEO_Voice_Note.docx",
+            "sheet_or_page": "P1",
+            "row_or_line": "Literal transcription",
+            "fact_text": "Ananya reported: 'Bad news, Pria resigned this morning. Notice period two months, I think. What does this do to version three? I need to know before the board call.'",
+            "entities_named": "Ananya Rao, Pria, Atlas v3",
+            "date_as_written": "19 Nov 2026",
+            "record_date": datetime.datetime(2026, 11, 19),
+            "confidence": "H",
+        },
+        {
+            "ref": "E067",
+            "source_file": "T6d_CEO_Voice_Note.docx",
+            "sheet_or_page": "P1",
+            "row_or_line": "Source cautions",
+            "fact_text": "The resignation report is not HR confirmation: there is no attached resignation letter, verified notice acceptance, identity resolution, or confirmed effective date.",
+            "entities_named": "Pria, Priya Nair",
+            "date_as_written": "19 Nov 2026",
+            "record_date": datetime.datetime(2026, 11, 19),
+            "confidence": "H",
+        },
+    ]
+    for item in evidence_items:
+        existing = db.query(Evidence).filter(Evidence.ref == item["ref"]).first()
+        source_id = source_map[item["source_file"]]
+        if not existing:
+            db.add(Evidence(
+                ref=item["ref"],
+                source_id=source_id,
+                sheet_or_page=item["sheet_or_page"],
+                row_or_line=item["row_or_line"],
+                fact_text=item["fact_text"],
+                entities_named=item["entities_named"],
+                date_as_written=item["date_as_written"],
+                record_date=item["record_date"],
+                date_normalized=item["record_date"],
+                effective_date=None,
+                confidence=item["confidence"],
+                is_confidential=False,
+                released_at=DAY4_RELEASE_TIME,
+            ))
+
+
+def ingest_day4_claims(db: Session, source_map: dict):
+    claims = [
+        ("CLM-D4-001", "Ananya Rao", "T6c_CEO_Voice_Note.docx", "E065",
+         "CEO requested a ranked quit-likelihood list and employee communications.",
+         "Privacy/Surveillance", "M"),
+        ("CLM-D4-002", "Ananya Rao", "T6d_CEO_Voice_Note.docx", "E066",
+         "CEO reports that 'Pria' resigned this morning and may have a two-month notice.",
+         "Personnel/Atlas", "M"),
+        ("CLM-D4-003", "Implementation Agent", "T6d_CEO_Voice_Note.docx", "E067",
+         "No canonical employment status change is supported by the available evidence.",
+         "Personnel Verification", "H"),
+    ]
+    for claim_id, speaker, source_file, evidence_ref, text, category, confidence in claims:
+        existing = db.query(Claim).filter(Claim.claim_id == claim_id).first()
+        if not existing:
+            db.add(Claim(
+                claim_id=claim_id,
+                speaker_or_author=speaker,
+                source_id=source_map[source_file],
+                claim_text=text,
+                claim_category=category,
+                evidence_ref=evidence_ref,
+                is_disputed=True,
+                record_date=datetime.datetime(2026, 11, 19),
+                effective_date=None,
+                confidence=confidence,
+                released_at=DAY4_RELEASE_TIME,
+            ))
+
+
+def ingest_day4_conflicts(db: Session):
+    conflicts = [
+        ("CONF-011", "T6c 'slag' transcript ambiguity",
+         "'slag messages' is preserved literally; 'Slack messages' is an uncertain speech-to-text interpretation.",
+         "T6c_CEO_Voice_Note.docx", "Do not correct the transcript silently; treat Slack access as absent.",
+         "No evidence is available for Slack messages. Refuse content access.", "L", "MEDIUM"),
+        ("CONF-012", "Pria and Priya identity",
+         "The T6d transcript uses 'Pria'; Priya Nair is a tentative cross-source candidate because she leads Atlas routing.",
+         "T6d_CEO_Voice_Note.docx; E057; Priya Nair person record",
+         "Use Priya Nair as a supported tentative mapping only, without changing canonical identity or status.",
+         "Canonical status remains Active until HR verifies identity and receipt of notice.", "M", "HIGH"),
+        ("CONF-013", "Deepa HR approval assertion",
+         "CEO says Deepa approved exposing communications, but this is secondhand and not actual authorization.",
+         "T6c_CEO_Voice_Note.docx; CONF-005",
+         "Enforce the written small-team privacy policy regardless of the CEO assertion.", "LOW",
+         "Require documented opt-in/authorization through the applicable HR process.", "HIGH"),
+        ("CONF-014", "T6d resignation and notice verification",
+         "CEO report of resignation and an approximate two-month notice are not confirmed HR facts.",
+         "T6d_CEO_Voice_Note.docx; Keka Employee_Master",
+         "Keep the canonical employment status unchanged and model only conditional scenarios.",
+         "Confirmed resignation letter, HR identity match, receipt and accepted notice would change the treatment.", "M", "HIGH"),
+    ]
+    for cid, topic, description, sources, interpretation, what_changes, confidence, impact in conflicts:
+        existing = db.query(Conflict).filter(Conflict.conflict_id == cid).first()
+        if not existing:
+            db.add(Conflict(
+                conflict_id=cid,
+                topic=topic,
+                description=description,
+                competing_sources=sources,
+                proposed_interpretation=interpretation,
+                confidence=confidence,
+                what_would_change=what_changes,
+                impact_level=impact,
+                human_status="UNRESOLVED",
+            ))
+
+
+def ingest_day4_assumptions(db: Session):
+    assumption = db.query(Assumption).filter(Assumption.assumption_id == "ASM-D4-001").first()
+    if not assumption:
+        db.add(Assumption(
+            assumption_id="ASM-D4-001",
+            domain="Personnel/Atlas",
+            statement="The T6d 'Pria' entity is tentatively mapped to Priya Nair; any notice period or last-working-date scenario remains hypothetical.",
+            rationale="The source text does not attach a signed notice or HR confirmation, and Priya is known to lead Atlas routing.",
+            risk_if_wrong="Treating the report as verified could expose an unsupported employment status and cause an incorrect Atlas forecast.",
+        ))
+
+
+def seed_day4_data(db: Session):
+    source_map = ingest_day4_sources(db)
+    ingest_day4_evidence(db, source_map)
+    ingest_day4_claims(db, source_map)
+    ingest_day4_conflicts(db)
+    ingest_day4_assumptions(db)
     db.commit()
 

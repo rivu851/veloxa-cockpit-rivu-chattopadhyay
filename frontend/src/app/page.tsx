@@ -110,7 +110,7 @@ interface HRInsightsResponse {
 
 export default function CockpitDashboard() {
   const [query, setQuery] = useState('');
-  const [asOf, setAsOf] = useState('Day3_2026-11-18T10:00:00+05:30');
+  const [asOf, setAsOf] = useState('Day4_2026-11-19T10:00:00+05:30');
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState<AskResponse | null>(null);
   const [risks, setRisks] = useState<RiskItem[]>([]);
@@ -245,7 +245,7 @@ export default function CockpitDashboard() {
             <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
               VELOXA CXO COCKPIT
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                Day 3 Active (18 Nov 2026)
+                Day 4 Active (19 Nov 2026)
               </span>
             </h1>
             <p className="text-xs text-slate-400">Grounded Multi-Source Executive Intelligence & Governance</p>
@@ -265,6 +265,8 @@ export default function CockpitDashboard() {
               }}
               className="bg-slate-900 text-white font-medium text-xs rounded px-2 py-0.5 border border-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
             >
+              <option value="Day4_2026-11-19T10:00:00+05:30">Day 4 Active (19 Nov 2026 10:00 IST)</option>
+              <option value="2026-11-19T09:59:59+05:30">Pre-Day 4 Cutoff (09:59:59 - Demo Refusal)</option>
               <option value="Day3_2026-11-18T10:00:00+05:30">Day 3 Active (18 Nov 2026 10:00 IST)</option>
               <option value="2026-11-18T09:59:59+05:30">Pre-Day 3 Cutoff (09:59:59 - Demo Refusal)</option>
               <option value="Day2_2026-11-17T10:00:00+05:30">Day 2 Active (17 Nov 2026 10:00 IST)</option>

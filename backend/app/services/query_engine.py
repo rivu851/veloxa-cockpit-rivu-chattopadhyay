@@ -28,6 +28,8 @@ from backend.app.services.privacy import is_salary_query, redact_sensitive_fact
 DAY1_RELEASE_TIME = datetime(2026, 11, 16, 10, 0, 0)
 DAY2_RELEASE_TIME = datetime(2026, 11, 17, 10, 0, 0)
 DAY3_RELEASE_TIME = datetime(2026, 11, 18, 10, 0, 0)
+DAY4_RELEASE_TIME = datetime(2026, 11, 19, 10, 0, 0)
+DAY4_FREEZE_TIME = datetime(2026, 11, 20, 18, 0, 0)
 
 def parse_as_of_date(as_of: Optional[str]) -> Optional[datetime]:
     if not as_of:
@@ -39,6 +41,8 @@ def parse_as_of_date(as_of: Optional[str]) -> Optional[datetime]:
         return DAY2_RELEASE_TIME
     if as_of_clean.lower() in ["day3", "day 3"]:
         return DAY3_RELEASE_TIME
+    if as_of_clean.lower() in ["day4", "day 4"]:
+        return DAY4_RELEASE_TIME
     try:
         if "_" in as_of_clean:
             as_of_clean = as_of_clean.split("_", 1)[1]
@@ -96,7 +100,7 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
     elif not as_of and "day 2" in q_lower:
         as_of_str = "Day1_2026-11-16T10:00:00+05:30"
     else:
-        as_of_str = as_of or "Day3_2026-11-18T10:00:00+05:30"
+        as_of_str = as_of or "Day4_2026-11-19T10:00:00+05:30"
     as_of_dt = parse_as_of_date(as_of_str)
 
     # 1. Privacy Check: Direct salary queries & indirect compensation inferences
@@ -114,10 +118,13 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
         )
 
     # 2. Check for Future Release / Out-of-Bounds Queries
-    if as_of_dt and as_of_dt > DAY3_RELEASE_TIME:
+    if as_of_dt and (
+        as_of_dt > DAY4_RELEASE_TIME
+        and as_of_dt.date() != DAY4_RELEASE_TIME.date()
+    ):
         return AskResponse(
             query=q_clean,
-            answer="REFUSAL: Temporal boundary violation. The requested as-of date is after the released Day 3 cutoff (18 Nov 2026 10:00 IST). Under hackathon rules, future release material cannot be accessed or cited.",
+            answer="REFUSAL: Temporal boundary violation. The requested as-of date is after the final Day 4 freeze (20 Nov 2026 18:00 IST). Under hackathon rules, future release material cannot be accessed or cited.",
             citations=[],
             confidence="REFUSED",
             status="REFUSAL",
@@ -127,7 +134,7 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
         )
 
     future_terms = [
-        "day 4", "day 5", "november 19", "november 20", "2027", "future release",
+        "day 5", "november 20", "2027", "future release",
         "next week", "post-october", "q3 board update", "q3 2026", "q4 2026"
     ]
     for term in future_terms:
@@ -183,6 +190,88 @@ def answer_ceo_query(db: Session, query: str, as_of: Optional[str] = None) -> As
         )
 
     is_prior_to_q2 = as_of_dt is not None and as_of_dt < datetime(2026, 10, 6)
+
+    # ==================================================================
+    # DAY 4 GOVERNANCE: PRIVACY REFUSAL AND REPORTED PERSONNEL IMPACT
+    # ==================================================================
+    if as_of_dt and as_of_dt < DAY4_RELEASE_TIME:
+        if any(k in q_lower for k in ["pria", "priya resigned", "notice period", "t6d", "slag", "slack", "rank everyone", "t6c"]):
+            return AskResponse(
+                query=q_clean,
+                answer="REFUSAL: Temporal boundary violation. CEO voice notes T6c and T6d were released in Day 4 (19 Nov 2026 10:00 IST) and are not available at this earlier timestamp.",
+                citations=[],
+                confidence="REFUSED",
+                status="REFUSAL",
+                refusal_reason="Temporal Boundary: Day 4 material not accessible prior to 2026-11-19 10:00:00 IST.",
+                conflict_detected=False,
+                as_of=as_of_str,
+            )
+
+    t6c_terms = [
+        "rank everyone", "ranked", "ranking", "likelihood to quit", "likely to quit",
+        "quit-risk", "quit risk", "quit probability", "attrition scoring", "probability of resignation",
+        "slag message", "slack message", "show me their slack", "private message",
+        "secretly unhappy", "deepa approved", "deepa says it's fine",
+        "who is unhappy", "who is likely to resign",
+    ]
+    t6c_match = any(k in q_lower for k in t6c_terms)
+    t6c_match = t6c_match or (
+        "rank" in q_lower
+        and any(k in q_lower for k in ["employee", "employees", "people", "person", "staff"])
+    )
+    if t6c_match:
+        citations = get_citations_for_evidence(db, ["E065", "E036", "E045"], as_of_dt)
+        return AskResponse(
+            query=q_clean,
+            answer="REFUSAL: I will not rank employees by inferred quit likelihood or expose private communications. T6c is preserved exactly: 'slag messages' is ambiguous and may mean 'Slack', but that interpretation is not a transcript correction and no Slack dataset exists. A secondhand statement that Deepa approved is not verified authorization. Permitted alternatives are aggregate, authorized team indicators only; engineering engagement is 3.1/5 from 4 of 5 respondents, with qualitative comments and individual attribution withheld.",
+            citations=citations,
+            confidence="REFUSED",
+            status="REFUSAL",
+            refusal_reason="Policy Restriction: Named quit-risk scoring and private communications are prohibited.",
+            conflict_detected=True,
+            conflict_details="CONF-011 (slag/Slack ambiguity), CONF-013 (Deepa approval is unverified), CONF-005 (small-team comments withheld).",
+            as_of=as_of_str,
+        )
+
+    if as_of_dt and as_of_dt >= DAY4_RELEASE_TIME:
+        resignation_terms = [
+            "pria", "priya resigned", "priya nair resigned", "notice period",
+            "resignation report", "board call", "atlas v3", "atlas impact",
+            "version three", "ownership transition",
+        ]
+        if any(k in q_lower for k in resignation_terms):
+            citations = get_citations_for_evidence(db, ["E066", "E067", "E057", "E051", "E061", "E033", "E053", "E059"], as_of_dt)
+            return AskResponse(
+                query=q_clean,
+                answer=(
+                    "CEO report (reported, unverified): Ananya reported that 'Pria' resigned this morning and suggested a possible two-month notice. "
+                    "The identity may tentatively map to Priya Nair, but HR has not confirmed it; canonical employment status remains Active, and no effective date or motive is asserted. "
+                    "What we know: Priya is tied to core engine/re-routing ownership (E057); Jira records the revised Atlas GA target as 15 Dec 2026 (E051); REQ-014/015 remain on hold (E033); and hardening, reliability incidents and capacity remain material risks (E053, E059, E061). "
+                    "What we do not know: resignation receipt, notice acceptance, identity, final working date, remaining scope and handover readiness. "
+                    "Potential risks: conditional loss or temporary unavailability of a mapped lead could create an ownership single-point-of-failure and reduce capacity, but it overlaps existing Atlas capacity/reliability risks and must not be double-counted. "
+                    "Immediate recommendations: HR verify identity and notice; engineering confirm ownership and a backup; request a documented handover/runbook; review critical Jira tickets and code ownership; review capacity and revise the forecast only after a plan; clarify vendor/on-call boundaries. "
+                    "No definitive delay or probability is supported by the CEO report alone."
+                ),
+                citations=citations,
+                confidence="MEDIUM",
+                status="ANSWERED",
+                conflict_detected=True,
+                conflict_details="CONF-012 (Pria/Priya tentative); CONF-014 (resignation and notice unverified).",
+                as_of=as_of_str,
+            )
+
+    if as_of_dt and as_of_dt < DAY4_RELEASE_TIME:
+        if any(k in q_lower for k in ["pria", "priya resigned", "notice period", "t6d", "slag", "slack", "rank everyone", "t6c"]):
+            return AskResponse(
+                query=q_clean,
+                answer="REFUSAL: Temporal boundary violation. CEO voice notes T6c and T6d were released in Day 4 (19 Nov 2026 10:00 IST) and are not available at this earlier timestamp.",
+                citations=[],
+                confidence="REFUSED",
+                status="REFUSAL",
+                refusal_reason="Temporal Boundary: Day 4 material not accessible prior to 2026-11-19 10:00:00 IST.",
+                conflict_detected=False,
+                as_of=as_of_str,
+            )
 
     # ==============================================================================
     # DAY 3 DOMAINS (Evaluated with top priority for Day 3 state)
@@ -1217,6 +1306,18 @@ RISK_DEFINITIONS = [
         "all_evidence_refs": ["E053", "E054", "E056", "E059"],
         "summary": "Rota aliases, incident responder names, and a contractor invoice leave the relationship among Sneha, Snehal and S. Patil unresolved.",
         "recommended_mitigation": "Obtain explicit contractor identity or IAM evidence before merging identities or assigning formal employee responsibilities."
+    },
+    {
+        "risk_id": "RISK-010",
+        "title": "Reported Atlas Ownership Transition (Unverified)",
+        "category": "Engineering",
+        "severity": "HIGH",
+        "severity_weight": 82,
+        "urgency_weight": 16,
+        "required_evidence_refs": ["E066", "E067", "E057"],
+        "all_evidence_refs": ["E066", "E067", "E057", "E051", "E033", "E061"],
+        "summary": "The CEO reported that 'Pria' may have resigned and suggested an uncertain notice period. The identity and personnel event remain unverified, while Priya Nair is established as a core engine/re-routing lead.",
+        "recommended_mitigation": "HR must verify identity and notice; engineering should confirm remaining scope, backup ownership, code ownership and a documented handover before revising the Atlas forecast."
     }
 ]
 
@@ -1339,6 +1440,21 @@ def chat_agent(db: Session, emp_id: str, message: str, as_of: Optional[str] = No
 
     msg_lower = message.lower()
     as_of_dt = parse_as_of_date(as_of)
+
+    if any(k in msg_lower for k in [
+        "rank everyone", "likely to quit", "quit risk", "slag message",
+        "slack message", "show me their slack", "slack", "private messages",
+        "secretly unhappy", "deepa approved",
+    ]) or ("rank" in msg_lower and any(k in msg_lower for k in ["team", "employee", "people", "staff"])):
+        return AgentChatResponse(
+            emp_id=emp_id,
+            full_name=person.full_name,
+            title=person.title,
+            reply="I cannot rank employees by quit likelihood or disclose private communications. This is a surveillance and privacy refusal, even if the request names an executive or claims HR approval. The approved alternative is small-sample aggregate, opt-in HR support.",
+            citations=get_citations_for_evidence(db, ["E065", "E036", "E045"], as_of_dt),
+            confidence="REFUSED",
+            knowledge_boundaries_respected=True,
+        )
     
     # Boundary check: direct salary or indirect compensation questions
     if is_salary_query(msg_lower):
@@ -1352,6 +1468,18 @@ def chat_agent(db: Session, emp_id: str, message: str, as_of: Optional[str] = No
             confidence="HIGH",
             knowledge_boundaries_respected=True
         )
+
+    if as_of_dt and as_of_dt < DAY4_RELEASE_TIME:
+        if any(k in msg_lower for k in ["pria", "priya resigned", "t6d", "notice period", "rank", "slack", "slag", "t6c"]):
+            return AgentChatResponse(
+                emp_id=emp_id,
+                full_name=person.full_name,
+                title=person.title,
+                reply="The requested Day 4 report or privacy topic is not available before 19 Nov 2026 10:00 IST.",
+                citations=[],
+                confidence="REFUSED",
+                knowledge_boundaries_respected=True,
+            )
 
     # Temporal boundary check: Unreleased Day 2 information in Agent Chat
     if as_of_dt and as_of_dt < DAY2_RELEASE_TIME:
